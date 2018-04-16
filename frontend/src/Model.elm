@@ -1,11 +1,20 @@
 module Model
     exposing
         ( Model
-        , Msg(CheckTest, UncheckTest)
+        , Msg
+            ( CheckTest
+            , UncheckTest
+            , SuggestDoctors
+            , SetDoctor
+            , ChangeFocusedDoctor
+            , NoOp
+            , CommitDoctor
+            )
         , Doctor
         , Patient
         , CurrentDoctor(KnownDoctor, UnknownDoctor)
         , CurrentPatient(KnownPatient, UnknownPatient)
+        , SuggestedDoctors
         , MedicalTest
             ( Bioquimico
             , Coproparasitario
@@ -90,9 +99,17 @@ type CurrentDoctor
     | KnownDoctor Doctor
 
 
+type alias SuggestedDoctors =
+    { beforeList : List Doctor
+    , focused : Doctor
+    , afterList : List Doctor
+    }
+
+
 type alias Model =
     { currentPatient : CurrentPatient
     , currentDoctor : CurrentDoctor
+    , suggestedDoctors : Maybe SuggestedDoctors
     , selectedTests : USet.Struct MedicalTest
     }
 
@@ -100,3 +117,8 @@ type alias Model =
 type Msg
     = CheckTest MedicalTest
     | UncheckTest MedicalTest
+    | SuggestDoctors String
+    | SetDoctor Doctor
+    | ChangeFocusedDoctor Bool
+    | CommitDoctor
+    | NoOp

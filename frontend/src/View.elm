@@ -1,9 +1,11 @@
 module View exposing (view)
 
+import List
 import UStruct.USet as USet
 import Model
     exposing
         ( Model
+        , Doctor
         , CurrentPatient
             ( UnknownPatient
             , KnownPatient
@@ -12,7 +14,16 @@ import Model
             ( UnknownDoctor
             , KnownDoctor
             )
-        , Msg(CheckTest, UncheckTest)
+        , SuggestedDoctors
+        , Msg
+            ( CheckTest
+            , UncheckTest
+            , SetDoctor
+            , SuggestDoctors
+            , ChangeFocusedDoctor
+            , CommitDoctor
+            , NoOp
+            )
         , MedicalTest
             ( Bioquimico
             , Coproparasitario
@@ -37,13 +48,95 @@ import Html
         , div
         , h1
         , img
+        , li
+        , ul
         , table
         , tr
         , td
         )
-import Html.Attributes exposing (class, checked, name, placeholder, type_, value)
-import Html.Events exposing (onCheck)
-import Set exposing (Set, member)
+import Html.Attributes exposing (class, classList, checked, id, name, placeholder, type_, value)
+import KeyboardEvents exposing (onKeyDown)
+import Html.Events exposing (onCheck, onInput)
+
+
+suggestedDoctorRow : Bool -> Doctor -> Html Msg
+suggestedDoctorRow focused doctor =
+    let
+        classes =
+            if focused then
+                "autocomplete-item key-selected"
+            else
+                "autocomplete-item"
+    in
+        li [ class classes ] [ text doctor.name ]
+
+
+onArrowKeysPressed : Int -> Msg
+onArrowKeysPressed keyCode =
+    case keyCode of
+        38 ->
+            ChangeFocusedDoctor True
+
+        40 ->
+            ChangeFocusedDoctor False
+
+        13 ->
+            CommitDoctor
+
+        _ ->
+            NoOp
+
+
+viewDoctorSuggestions : Maybe SuggestedDoctors -> Html Msg
+viewDoctorSuggestions maybeSuggestedDoctors =
+    case maybeSuggestedDoctors of
+        Just suggestedDoctors ->
+            let
+                createNormalRows =
+                    List.map
+                        (suggestedDoctorRow
+                            False
+                        )
+
+                beforeRows =
+                    createNormalRows suggestedDoctors.beforeList
+
+                afterRows =
+                    createNormalRows suggestedDoctors.afterList
+
+                focusedRow =
+                    [ suggestedDoctorRow True suggestedDoctors.focused
+                    ]
+            in
+                ul [ class "autocomplete-list" ] <|
+                    List.concat
+                        [ beforeRows
+                        , focusedRow
+                        , afterRows
+                        ]
+
+        Nothing ->
+            div [] []
+
+
+doctorAutocomplete : String -> Maybe SuggestedDoctors -> Html Msg
+doctorAutocomplete inputName maybeSuggestedDoctors =
+    let
+        doctorNameInput =
+            input
+                [ type_ "text"
+                , placeholder "Doctor"
+                , name "doctor"
+                , value inputName
+                , onInput SuggestDoctors
+                , onKeyDown onArrowKeysPressed
+                ]
+                []
+
+        maybeSuggestions =
+            viewDoctorSuggestions maybeSuggestedDoctors
+    in
+        div [ class "autocomplete-menu" ] [ doctorNameInput, maybeSuggestions ]
 
 
 patientInputField : CurrentPatient -> Html Msg
@@ -62,17 +155,11 @@ patientInputField currentPatient =
             a [] [ text patient.name ]
 
 
-doctorInputField : CurrentDoctor -> Html Msg
-doctorInputField currentDoctor =
+doctorInputField : CurrentDoctor -> Maybe SuggestedDoctors -> Html Msg
+doctorInputField currentDoctor maybeSuggestedDoctors =
     case currentDoctor of
         UnknownDoctor inputName ->
-            input
-                [ type_ "text"
-                , placeholder "doctor"
-                , name "doctor"
-                , value inputName
-                ]
-                []
+            doctorAutocomplete inputName maybeSuggestedDoctors
 
         KnownDoctor doctor ->
             a [] [ text doctor.name ]
@@ -136,6 +223,6 @@ view model =
         [ h1 [] [ text "Your Elm App is working!" ]
         , patientInputField model.currentPatient
         , br [] []
-        , doctorInputField model.currentDoctor
+        , doctorInputField model.currentDoctor model.suggestedDoctors
         , selectedTestsCheckBoxes model.selectedTests
         ]

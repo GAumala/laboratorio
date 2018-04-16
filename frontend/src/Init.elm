@@ -15,6 +15,7 @@ defaultModel =
     { currentPatient = UnknownPatient ""
     , currentDoctor = UnknownDoctor ""
     , selectedTests = USet.empty
+    , suggestedDoctors = Nothing
     }
 
 
