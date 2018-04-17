@@ -14,7 +14,6 @@ module Model
         , Patient
         , CurrentDoctor(KnownDoctor, UnknownDoctor)
         , CurrentPatient(KnownPatient, UnknownPatient)
-        , SuggestedDoctors
         , MedicalTest
             ( Bioquimico
             , Coproparasitario
@@ -30,6 +29,7 @@ module Model
         )
 
 import UStruct.USet as USet
+import Utils.SelectList as SList
 
 
 type alias Patient =
@@ -99,17 +99,10 @@ type CurrentDoctor
     | KnownDoctor Doctor
 
 
-type alias SuggestedDoctors =
-    { beforeList : List Doctor
-    , focused : Doctor
-    , afterList : List Doctor
-    }
-
-
 type alias Model =
     { currentPatient : CurrentPatient
     , currentDoctor : CurrentDoctor
-    , suggestedDoctors : Maybe SuggestedDoctors
+    , suggestedDoctors : Maybe (SList.SelectList Doctor)
     , selectedTests : USet.Struct MedicalTest
     }
 

@@ -1,7 +1,7 @@
 module View exposing (view)
 
-import List
 import UStruct.USet as USet
+import Utils.SelectList as SList
 import Model
     exposing
         ( Model
@@ -14,7 +14,6 @@ import Model
             ( UnknownDoctor
             , KnownDoctor
             )
-        , SuggestedDoctors
         , Msg
             ( CheckTest
             , UncheckTest
@@ -59,11 +58,11 @@ import KeyboardEvents exposing (onKeyDown)
 import Html.Events exposing (onCheck, onInput)
 
 
-suggestedDoctorRow : Bool -> Doctor -> Html Msg
-suggestedDoctorRow focused doctor =
+suggestedDoctorRow : SList.Position -> Doctor -> Html Msg
+suggestedDoctorRow position doctor =
     let
         classes =
-            if focused then
+            if position == SList.Selected then
                 "autocomplete-item key-selected"
             else
                 "autocomplete-item"
@@ -87,39 +86,19 @@ onArrowKeysPressed keyCode =
             NoOp
 
 
-viewDoctorSuggestions : Maybe SuggestedDoctors -> Html Msg
+viewDoctorSuggestions : Maybe (SList.SelectList Doctor) -> Html Msg
 viewDoctorSuggestions maybeSuggestedDoctors =
     case maybeSuggestedDoctors of
         Just suggestedDoctors ->
-            let
-                createNormalRows =
-                    List.map
-                        (suggestedDoctorRow
-                            False
-                        )
-
-                beforeRows =
-                    createNormalRows suggestedDoctors.beforeList
-
-                afterRows =
-                    createNormalRows suggestedDoctors.afterList
-
-                focusedRow =
-                    [ suggestedDoctorRow True suggestedDoctors.focused
-                    ]
-            in
-                ul [ class "autocomplete-list" ] <|
-                    List.concat
-                        [ beforeRows
-                        , focusedRow
-                        , afterRows
-                        ]
+            ul [ class "autocomplete-list" ] <|
+                SList.toList <|
+                    SList.mapBy suggestedDoctorRow suggestedDoctors
 
         Nothing ->
             div [] []
 
 
-doctorAutocomplete : String -> Maybe SuggestedDoctors -> Html Msg
+doctorAutocomplete : String -> Maybe (SList.SelectList Doctor) -> Html Msg
 doctorAutocomplete inputName maybeSuggestedDoctors =
     let
         doctorNameInput =
@@ -155,7 +134,7 @@ patientInputField currentPatient =
             a [] [ text patient.name ]
 
 
-doctorInputField : CurrentDoctor -> Maybe SuggestedDoctors -> Html Msg
+doctorInputField : CurrentDoctor -> Maybe (SList.SelectList Doctor) -> Html Msg
 doctorInputField currentDoctor maybeSuggestedDoctors =
     case currentDoctor of
         UnknownDoctor inputName ->

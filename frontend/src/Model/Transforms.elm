@@ -7,16 +7,14 @@ module Model.Transforms
         , commitToFocusedDoctor
         )
 
-import List
-import Maybe
 import UStruct.USet as USet
+import Utils.SelectList as SList
 import Model
     exposing
         ( Doctor
         , CurrentDoctor(KnownDoctor, UnknownDoctor)
         , Model
         , MedicalTest
-        , SuggestedDoctors
         )
 
 
@@ -61,12 +59,7 @@ setDoctorSuggestions queryString model =
     let
         suggestedDoctors =
             if queryString /= "" then
-                Just
-                    { beforeList = []
-                    , focused = firstPossibleDoctor
-                    , afterList =
-                        possibleDoctors
-                    }
+                Just <| SList.fromLists [] firstPossibleDoctor possibleDoctors
             else
                 Nothing
     in
@@ -77,70 +70,14 @@ setDoctorSuggestions queryString model =
         }
 
 
-moveFocusedDoctorDown : SuggestedDoctors -> SuggestedDoctors
-moveFocusedDoctorDown suggestedDoctors =
-    let
-        beforeList =
-            suggestedDoctors.beforeList
-
-        focused =
-            suggestedDoctors.focused
-
-        afterList =
-            suggestedDoctors.afterList
-
-        maybeNewFocusedDoctor =
-            List.head afterList
-    in
-        case maybeNewFocusedDoctor of
-            Just newFocusedDoctor ->
-                { beforeList = beforeList ++ [ focused ]
-                , focused = newFocusedDoctor
-                , afterList =
-                    Maybe.withDefault
-                        []
-                    <|
-                        List.tail afterList
-                }
-
-            Nothing ->
-                suggestedDoctors
+moveFocusedItemDown : SList.SelectList a -> SList.SelectList a
+moveFocusedItemDown selectList =
+    SList.move 1 selectList
 
 
-moveFocusedDoctorUp : SuggestedDoctors -> SuggestedDoctors
-moveFocusedDoctorUp suggestedDoctors =
-    let
-        beforeList =
-            suggestedDoctors.beforeList
-
-        focused =
-            suggestedDoctors.focused
-
-        afterList =
-            suggestedDoctors.afterList
-
-        reversedBeforeList =
-            List.reverse beforeList
-
-        maybeNewFocusedDoctor =
-            List.head <| reversedBeforeList
-
-        maybeNewBeforeList =
-            List.tail reversedBeforeList
-    in
-        case maybeNewFocusedDoctor of
-            Just newFocusedDoctor ->
-                { beforeList =
-                    Maybe.withDefault []
-                        maybeNewBeforeList
-                , focused = newFocusedDoctor
-                , afterList =
-                    [ focused ]
-                        ++ afterList
-                }
-
-            Nothing ->
-                suggestedDoctors
+moveFocusedItemUp : SList.SelectList a -> SList.SelectList a
+moveFocusedItemUp selectList =
+    SList.move -1 selectList
 
 
 moveFocusedDoctor : Bool -> Model -> Model
@@ -153,9 +90,9 @@ moveFocusedDoctor isUp model =
             case maybeSuggestedDoctors of
                 Just suggestedDoctors ->
                     if isUp then
-                        Just <| moveFocusedDoctorUp suggestedDoctors
+                        Just <| moveFocusedItemUp suggestedDoctors
                     else
-                        Just <| moveFocusedDoctorDown suggestedDoctors
+                        Just <| moveFocusedItemDown suggestedDoctors
 
                 Nothing ->
                     Nothing
@@ -170,7 +107,7 @@ commitToFocusedDoctor model =
     case model.suggestedDoctors of
         Just suggestedDoctors ->
             { model
-                | currentDoctor = KnownDoctor suggestedDoctors.focused
+                | currentDoctor = KnownDoctor <| SList.selected suggestedDoctors
                 , suggestedDoctors = Nothing
             }
 
