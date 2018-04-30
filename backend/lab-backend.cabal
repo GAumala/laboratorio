@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6d320d28b5da46874bbe89adbd061a7f89862710b526f63083884f11bd43c55a
+-- hash: b8cae24e0fd0149bf18f87dce7f8a4cb0d44dfe81de15afd22e6ce1e6c348fd6
 
 name:           lab-backend
 version:        0.1.0.0
@@ -27,6 +27,7 @@ source-repository head
 
 library
   exposed-modules:
+      Data.Doctor
       Lib
   other-modules:
       Paths_lab_backend

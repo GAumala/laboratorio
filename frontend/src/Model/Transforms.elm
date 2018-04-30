@@ -2,11 +2,13 @@ module Model.Transforms
     exposing
         ( addSelectedTest
         , removeSelectedTest
+        , setDoctorQueryText
         , setDoctorSuggestions
         , moveFocusedDoctor
         , commitToFocusedDoctor
         )
 
+import String exposing (isEmpty)
 import UStruct.USet as USet
 import Utils.SelectList as SList
 import Model
@@ -34,39 +36,28 @@ removeSelectedTest testToRemove model =
     }
 
 
-firstPossibleDoctor =
-    { rowid = 2
-    , name = "Sussy Corral"
-    , email = "sussy@gmail.com"
-    }
+setDoctorSuggestions : List Doctor -> Model -> Model
+setDoctorSuggestions suggestedDoctors model =
+    case suggestedDoctors of
+        [] ->
+            { model | suggestedDoctors = Nothing }
+
+        x :: xs ->
+            { model | suggestedDoctors = Just <| SList.fromLists [] x xs }
 
 
-possibleDoctors : List Doctor
-possibleDoctors =
-    [ { rowid = 1
-      , name = "Natilse Rondon"
-      , email = "natilse@gmail.com"
-      }
-    , { rowid = 2
-      , name = "Marco Albuja"
-      , email = "marco@gmail.com"
-      }
-    ]
-
-
-setDoctorSuggestions : String -> Model -> Model
-setDoctorSuggestions queryString model =
+setDoctorQueryText : String -> Model -> Model
+setDoctorQueryText queryText model =
     let
         suggestedDoctors =
-            if queryString /= "" then
-                Just <| SList.fromLists [] firstPossibleDoctor possibleDoctors
-            else
+            if isEmpty queryText then
                 Nothing
+            else
+                model.suggestedDoctors
     in
         { model
-            | suggestedDoctors = suggestedDoctors
-            , currentDoctor =
-                UnknownDoctor queryString
+            | currentDoctor = UnknownDoctor queryText
+            , suggestedDoctors = suggestedDoctors
         }
 
 

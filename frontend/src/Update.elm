@@ -5,12 +5,13 @@ import Model
         ( Model
         , Doctor
         , Msg
-            ( CheckTest
-            , UncheckTest
-            , SuggestDoctors
-            , SetDoctor
-            , ChangeFocusedDoctor
+            ( ChangeFocusedDoctor
+            , CheckTest
             , CommitDoctor
+            , NewDoctorSuggestions
+            , UncheckTest
+            , SetDoctor
+            , SuggestDoctors
             )
         , CurrentDoctor(UnknownDoctor)
         , CurrentPatient(UnknownPatient)
@@ -20,9 +21,16 @@ import Model.Transforms
         ( addSelectedTest
         , removeSelectedTest
         , setDoctorSuggestions
+        , setDoctorQueryText
         , moveFocusedDoctor
         , commitToFocusedDoctor
         )
+import API exposing (getDoctorSuggestions)
+
+
+baseUrl : String
+baseUrl =
+    ""
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -34,8 +42,19 @@ update msg model =
         UncheckTest testToRemove ->
             ( removeSelectedTest testToRemove model, Cmd.none )
 
-        SuggestDoctors queryString ->
-            ( setDoctorSuggestions queryString model, Cmd.none )
+        NewDoctorSuggestions response ->
+            case response of
+                Ok suggestions ->
+                    ( setDoctorSuggestions suggestions model, Cmd.none )
+
+                Err error ->
+                    ( model, Cmd.none )
+
+        SuggestDoctors queryText ->
+            ( setDoctorQueryText queryText model
+            , getDoctorSuggestions baseUrl
+                queryText
+            )
 
         ChangeFocusedDoctor isUp ->
             ( moveFocusedDoctor isUp model, Cmd.none )

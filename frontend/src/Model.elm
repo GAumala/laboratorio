@@ -2,13 +2,14 @@ module Model
     exposing
         ( Model
         , Msg
-            ( CheckTest
+            ( ChangeFocusedDoctor
+            , CheckTest
+            , CommitDoctor
+            , NewDoctorSuggestions
+            , NoOp
             , UncheckTest
             , SuggestDoctors
             , SetDoctor
-            , ChangeFocusedDoctor
-            , NoOp
-            , CommitDoctor
             )
         , Doctor
         , Patient
@@ -28,6 +29,7 @@ module Model
         , medicalTestName
         )
 
+import Http as Http
 import UStruct.USet as USet
 import Utils.SelectList as SList
 
@@ -111,6 +113,7 @@ type Msg
     = CheckTest MedicalTest
     | UncheckTest MedicalTest
     | SuggestDoctors String
+    | NewDoctorSuggestions (Result Http.Error (List Doctor))
     | SetDoctor Doctor
     | ChangeFocusedDoctor Bool
     | CommitDoctor
