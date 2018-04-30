@@ -3,37 +3,26 @@
 module Main where
 
 import Control.Monad.IO.Class (liftIO)
-import Data.Aeson (object, (.=))
-import qualified Data.Doctor as Doctor
+import Data.Aeson (ToJSON, object, (.=))
 import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.IO as IOT
-import Network.HTTP.Types.Status (unprocessableEntity422)
 import Web.Scotty (file, finish, get, json, param, rescue, setHeader, scotty, 
                     status, text, ActionM, Parsable, ScottyM)
+import Web.Scotty.AutoComplete (autoCompleteWith)
+
+import qualified Data.Doctor as Doctor
+import qualified Data.Patient as Patient
 import Lib
 
-type IffyParam a = Either T.Text a
-
-iffyParam :: Parsable a => T.Text -> ActionM (IffyParam a)
-iffyParam name = 
-    let
-        getParam = fmap Right $ param name 
-        handleError errorMessage = return $ Left errorMessage
-    in
-        getParam `rescue` handleError
 
 serveClientApp :: ActionM ()
 serveClientApp = do
     setHeader "Content-Type" "text/html" 
     file "app.html" 
 
-handleInvalidRequest :: T.Text -> ActionM ()
-handleInvalidRequest errorMessage = do
-    status unprocessableEntity422
-    json $ object [ "error" .= errorMessage ]
 
-mockedSuggestedDoctors :: [Doctor.Record]
-mockedSuggestedDoctors = 
+mockedSuggestedDoctors :: T.Text -> IO [Doctor.Record]
+mockedSuggestedDoctors queryText = return
     [ Doctor.Record 
         { Doctor.rowid = 1
         , Doctor.name = "Alberto Sanchez"
@@ -43,19 +32,22 @@ mockedSuggestedDoctors =
         , Doctor.name = "Nelly Ortega"
         , Doctor.email = "nelly@gmail.com" } ]
 
-suggestDoctors :: ActionM ()
-suggestDoctors = do
-    maybeQueryText <- iffyParam "q" 
-    case maybeQueryText of
-        Left errorMessage -> handleInvalidRequest errorMessage
-        Right queryText -> do
-            setHeader "Content-Type" "application/json"
-            json mockedSuggestedDoctors
+mockedSuggestedPatients :: T.Text -> IO [Patient.Record]
+mockedSuggestedPatients queryText = return
+    [ Patient.Record 
+        { Patient.rowid = 1
+        , Patient.name = "Alex Rivadeneira"
+        , Patient.email = "alex@gmail.com" } 
+    , Patient.Record 
+        { Patient.rowid = 2
+        , Patient.name = "Joselyn Fuentes"
+        , Patient.email = "joselyn@gmail.com" } ]
 
 runBackendServer :: ScottyM ()
 runBackendServer = do
     get "/" serveClientApp
-    get "/doctors" suggestDoctors 
+    get "/doctors" $ autoCompleteWith mockedSuggestedDoctors
+    get "/patients" $ autoCompleteWith mockedSuggestedPatients
 
 main :: IO ()
 main = scotty 8008 runBackendServer

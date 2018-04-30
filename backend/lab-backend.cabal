@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b8cae24e0fd0149bf18f87dce7f8a4cb0d44dfe81de15afd22e6ce1e6c348fd6
+-- hash: 811c81cbf5ed7bcce07200d8d0db04435ea74936894f37739f9a07df04898884
 
 name:           lab-backend
 version:        0.1.0.0
@@ -28,7 +28,10 @@ source-repository head
 library
   exposed-modules:
       Data.Doctor
+      Data.Patient
       Lib
+      Web.Scotty.AutoComplete
+      Web.Scotty.RequestSanitization
   other-modules:
       Paths_lab_backend
   hs-source-dirs:
