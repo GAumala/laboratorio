@@ -9,8 +9,10 @@ import Model
             ( CheckTest
             , UncheckTest
             , SuggestDoctors
+            , SuggestPatients
             )
         , CurrentDoctor(UnknownDoctor)
+        , CurrentPatient(UnknownPatient)
         )
 import Update exposing (update)
 import Init exposing (defaultModel)
@@ -59,6 +61,14 @@ testDoctor =
     }
 
 
+testPatient =
+    { rowid = 1
+    , name = "test"
+    , email =
+        "test@protonmail.com"
+    }
+
+
 suggestDoctorsMsg : Test
 suggestDoctorsMsg =
     let
@@ -80,6 +90,41 @@ suggestDoctorsMsg =
             update (SuggestDoctors "") modelBeforeDeleting
     in
         describe "SuggestDoctors"
+            [ test "should send http request after typing" <|
+                \_ -> Expect.notEqual cmdIssuedAfterTyping Cmd.none
+            , test "should set typed text as current doctor's query text" <|
+                \_ ->
+                    Expect.equal
+                        modelAfterTyping
+                        expectedModelAfterTyping
+            , test "should remove suggested doctors after deleting all text" <|
+                \_ -> Expect.equal modelAfterDeleting defaultModel
+            , test "should not send http request after deleting all text" <|
+                \_ -> Expect.equal cmdIssuedAfterDeleting Cmd.none
+            ]
+
+
+suggestPatientsMsg : Test
+suggestPatientsMsg =
+    let
+        ( modelAfterTyping, cmdIssuedAfterTyping ) =
+            update (SuggestPatients "do") defaultModel
+
+        expectedModelAfterTyping =
+            { defaultModel
+                | currentPatient = UnknownPatient "do"
+            }
+
+        modelBeforeDeleting =
+            { defaultModel
+                | suggestedPatients =
+                    Just <| SList.fromLists [] testPatient []
+            }
+
+        ( modelAfterDeleting, cmdIssuedAfterDeleting ) =
+            update (SuggestPatients "") modelBeforeDeleting
+    in
+        describe "SuggestPatients"
             [ test "should send http request after typing" <|
                 \_ -> Expect.notEqual cmdIssuedAfterTyping Cmd.none
             , test "should set typed text as current doctor's query text" <|

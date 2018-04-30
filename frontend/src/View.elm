@@ -6,6 +6,7 @@ import Model
     exposing
         ( Model
         , Doctor
+        , Patient
         , CurrentPatient
             ( UnknownPatient
             , KnownPatient
@@ -17,10 +18,12 @@ import Model
         , Msg
             ( CheckTest
             , UncheckTest
-            , SetDoctor
             , SuggestDoctors
+            , SuggestPatients
             , ChangeFocusedDoctor
             , CommitDoctor
+            , ChangeFocusedPatient
+            , CommitPatient
             , NoOp
             )
         , MedicalTest
@@ -54,33 +57,63 @@ import Html
         , td
         )
 import Html.Attributes exposing (class, classList, checked, id, name, placeholder, type_, value)
-import KeyboardEvents exposing (onKeyDown)
+import View.AutoComplete as AC
 import Html.Events exposing (onCheck, onInput)
+
+
+autoCompleteClassesByPosition : SList.Position -> String
+autoCompleteClassesByPosition position =
+    if position == SList.Selected then
+        "autocomplete-item key-selected"
+    else
+        "autocomplete-item"
 
 
 suggestedDoctorRow : SList.Position -> Doctor -> Html Msg
 suggestedDoctorRow position doctor =
     let
         classes =
-            if position == SList.Selected then
-                "autocomplete-item key-selected"
-            else
-                "autocomplete-item"
+            autoCompleteClassesByPosition position
     in
         li [ class classes ] [ text doctor.name ]
 
 
-onArrowKeysPressed : Int -> Msg
-onArrowKeysPressed keyCode =
-    case keyCode of
-        38 ->
+suggestedPatientRow : SList.Position -> Patient -> Html Msg
+suggestedPatientRow position patient =
+    let
+        classes =
+            autoCompleteClassesByPosition position
+    in
+        li [ class classes ] [ text patient.name ]
+
+
+onDoctorACKeysPressed : AC.AutoCompleteKey -> Msg
+onDoctorACKeysPressed key =
+    case key of
+        AC.Up ->
             ChangeFocusedDoctor True
 
-        40 ->
+        AC.Down ->
             ChangeFocusedDoctor False
 
-        13 ->
+        AC.Select ->
             CommitDoctor
+
+        _ ->
+            NoOp
+
+
+onPatientACKeysPressed : AC.AutoCompleteKey -> Msg
+onPatientACKeysPressed key =
+    case key of
+        AC.Up ->
+            ChangeFocusedPatient True
+
+        AC.Down ->
+            ChangeFocusedPatient False
+
+        AC.Select ->
+            CommitPatient
 
         _ ->
             NoOp
@@ -98,8 +131,20 @@ viewDoctorSuggestions maybeSuggestedDoctors =
             div [] []
 
 
-doctorAutocomplete : String -> Maybe (SList.SelectList Doctor) -> Html Msg
-doctorAutocomplete inputName maybeSuggestedDoctors =
+viewPatientSuggestions : Maybe (SList.SelectList Patient) -> Html Msg
+viewPatientSuggestions maybeSuggestedPatients =
+    case maybeSuggestedPatients of
+        Just suggestedPatients ->
+            ul [ class "autocomplete-list" ] <|
+                SList.toList <|
+                    SList.mapBy suggestedPatientRow suggestedPatients
+
+        Nothing ->
+            div [] []
+
+
+doctorAutoComplete : String -> Maybe (SList.SelectList Doctor) -> Html Msg
+doctorAutoComplete inputName maybeSuggestedDoctors =
     let
         doctorNameInput =
             input
@@ -108,7 +153,7 @@ doctorAutocomplete inputName maybeSuggestedDoctors =
                 , name "doctor"
                 , value inputName
                 , onInput SuggestDoctors
-                , onKeyDown onArrowKeysPressed
+                , AC.onAutoCompleteKeyDown onDoctorACKeysPressed
                 ]
                 []
 
@@ -118,30 +163,44 @@ doctorAutocomplete inputName maybeSuggestedDoctors =
         div [ class "autocomplete-menu" ] [ doctorNameInput, maybeSuggestions ]
 
 
-patientInputField : CurrentPatient -> Html Msg
-patientInputField currentPatient =
-    case currentPatient of
-        UnknownPatient inputName ->
+patientAutoComplete : String -> Maybe (SList.SelectList Patient) -> Html Msg
+patientAutoComplete inputName maybeSuggestedPatients =
+    let
+        patientNameInput =
             input
                 [ type_ "text"
-                , placeholder "paciente"
-                , name "paciente"
+                , placeholder "Patient"
+                , name "patient"
                 , value inputName
+                , onInput SuggestPatients
+                , AC.onAutoCompleteKeyDown onPatientACKeysPressed
                 ]
                 []
 
-        KnownPatient patient ->
-            a [] [ text patient.name ]
+        maybeSuggestions =
+            viewPatientSuggestions maybeSuggestedPatients
+    in
+        div [ class "autocomplete-menu" ] [ patientNameInput, maybeSuggestions ]
 
 
 doctorInputField : CurrentDoctor -> Maybe (SList.SelectList Doctor) -> Html Msg
 doctorInputField currentDoctor maybeSuggestedDoctors =
     case currentDoctor of
         UnknownDoctor inputName ->
-            doctorAutocomplete inputName maybeSuggestedDoctors
+            doctorAutoComplete inputName maybeSuggestedDoctors
 
         KnownDoctor doctor ->
             a [] [ text doctor.name ]
+
+
+patientInputField : CurrentPatient -> Maybe (SList.SelectList Patient) -> Html Msg
+patientInputField currentPatient maybeSuggestedPatients =
+    case currentPatient of
+        UnknownPatient inputName ->
+            patientAutoComplete inputName maybeSuggestedPatients
+
+        KnownPatient patient ->
+            a [] [ text patient.name ]
 
 
 onMedicalTestCheckEvent : MedicalTest -> (Bool -> Msg)
@@ -198,9 +257,9 @@ selectedTestsCheckBoxes selectedTests =
 
 view : Model -> Html Msg
 view model =
-    form []
+    div []
         [ h1 [] [ text "Your Elm App is working!" ]
-        , patientInputField model.currentPatient
+        , patientInputField model.currentPatient model.suggestedPatients
         , br [] []
         , doctorInputField model.currentDoctor model.suggestedDoctors
         , selectedTestsCheckBoxes model.selectedTests

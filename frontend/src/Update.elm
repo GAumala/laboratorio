@@ -6,12 +6,15 @@ import Model
         , Doctor
         , Msg
             ( ChangeFocusedDoctor
+            , ChangeFocusedPatient
             , CheckTest
             , CommitDoctor
+            , CommitPatient
             , NewDoctorSuggestions
+            , NewPatientSuggestions
             , UncheckTest
-            , SetDoctor
             , SuggestDoctors
+            , SuggestPatients
             )
         , CurrentDoctor(UnknownDoctor)
         , CurrentPatient(UnknownPatient)
@@ -22,10 +25,14 @@ import Model.Transforms
         , removeSelectedTest
         , setDoctorSuggestions
         , setDoctorQueryText
+        , setPatientSuggestions
+        , setPatientQueryText
         , moveFocusedDoctor
         , commitToFocusedDoctor
+        , moveFocusedPatient
+        , commitToFocusedPatient
         )
-import API exposing (getDoctorSuggestions)
+import API exposing (getPatientSuggestions, getDoctorSuggestions)
 
 
 baseUrl : String
@@ -56,11 +63,31 @@ update msg model =
                 queryText
             )
 
+        NewPatientSuggestions response ->
+            case response of
+                Ok suggestions ->
+                    ( setPatientSuggestions suggestions model, Cmd.none )
+
+                Err error ->
+                    ( model, Cmd.none )
+
+        SuggestPatients queryText ->
+            ( setPatientQueryText queryText model
+            , getPatientSuggestions baseUrl
+                queryText
+            )
+
         ChangeFocusedDoctor isUp ->
             ( moveFocusedDoctor isUp model, Cmd.none )
 
         CommitDoctor ->
             ( commitToFocusedDoctor model, Cmd.none )
+
+        ChangeFocusedPatient isUp ->
+            ( moveFocusedPatient isUp model, Cmd.none )
+
+        CommitPatient ->
+            ( commitToFocusedPatient model, Cmd.none )
 
         _ ->
             ( model, Cmd.none )

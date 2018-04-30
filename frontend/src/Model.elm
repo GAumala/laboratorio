@@ -3,13 +3,16 @@ module Model
         ( Model
         , Msg
             ( ChangeFocusedDoctor
+            , ChangeFocusedPatient
             , CheckTest
             , CommitDoctor
+            , CommitPatient
             , NewDoctorSuggestions
+            , NewPatientSuggestions
             , NoOp
             , UncheckTest
             , SuggestDoctors
-            , SetDoctor
+            , SuggestPatients
             )
         , Doctor
         , Patient
@@ -105,6 +108,7 @@ type alias Model =
     { currentPatient : CurrentPatient
     , currentDoctor : CurrentDoctor
     , suggestedDoctors : Maybe (SList.SelectList Doctor)
+    , suggestedPatients : Maybe (SList.SelectList Patient)
     , selectedTests : USet.Struct MedicalTest
     }
 
@@ -114,7 +118,10 @@ type Msg
     | UncheckTest MedicalTest
     | SuggestDoctors String
     | NewDoctorSuggestions (Result Http.Error (List Doctor))
-    | SetDoctor Doctor
+    | SuggestPatients String
+    | NewPatientSuggestions (Result Http.Error (List Patient))
     | ChangeFocusedDoctor Bool
+    | ChangeFocusedPatient Bool
     | CommitDoctor
+    | CommitPatient
     | NoOp

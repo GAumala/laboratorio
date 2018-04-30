@@ -4,8 +4,12 @@ module Model.Transforms
         , removeSelectedTest
         , setDoctorQueryText
         , setDoctorSuggestions
+        , setPatientQueryText
+        , setPatientSuggestions
         , moveFocusedDoctor
+        , moveFocusedPatient
         , commitToFocusedDoctor
+        , commitToFocusedPatient
         )
 
 import String exposing (isEmpty)
@@ -14,7 +18,9 @@ import Utils.SelectList as SList
 import Model
     exposing
         ( Doctor
+        , Patient
         , CurrentDoctor(KnownDoctor, UnknownDoctor)
+        , CurrentPatient(KnownPatient, UnknownPatient)
         , Model
         , MedicalTest
         )
@@ -61,6 +67,31 @@ setDoctorQueryText queryText model =
         }
 
 
+setPatientSuggestions : List Patient -> Model -> Model
+setPatientSuggestions suggestedPatients model =
+    case suggestedPatients of
+        [] ->
+            { model | suggestedPatients = Nothing }
+
+        x :: xs ->
+            { model | suggestedPatients = Just <| SList.fromLists [] x xs }
+
+
+setPatientQueryText : String -> Model -> Model
+setPatientQueryText queryText model =
+    let
+        suggestedPatients =
+            if isEmpty queryText then
+                Nothing
+            else
+                model.suggestedPatients
+    in
+        { model
+            | currentPatient = UnknownPatient queryText
+            , suggestedPatients = suggestedPatients
+        }
+
+
 moveFocusedItemDown : SList.SelectList a -> SList.SelectList a
 moveFocusedItemDown selectList =
     SList.move 1 selectList
@@ -71,25 +102,48 @@ moveFocusedItemUp selectList =
     SList.move -1 selectList
 
 
+moveFocusedItem :
+    Bool
+    -> Maybe (SList.SelectList a)
+    -> Maybe (SList.SelectList a)
+moveFocusedItem isUp maybeItems =
+    case maybeItems of
+        Just items ->
+            if isUp then
+                Just <| moveFocusedItemUp items
+            else
+                Just <| moveFocusedItemDown items
+
+        Nothing ->
+            Nothing
+
+
 moveFocusedDoctor : Bool -> Model -> Model
 moveFocusedDoctor isUp model =
     let
         maybeSuggestedDoctors =
             model.suggestedDoctors
 
+        newSuggestedDoctors : Maybe (SList.SelectList Doctor)
         newSuggestedDoctors =
-            case maybeSuggestedDoctors of
-                Just suggestedDoctors ->
-                    if isUp then
-                        Just <| moveFocusedItemUp suggestedDoctors
-                    else
-                        Just <| moveFocusedItemDown suggestedDoctors
-
-                Nothing ->
-                    Nothing
+            moveFocusedItem isUp maybeSuggestedDoctors
     in
         { model
             | suggestedDoctors = newSuggestedDoctors
+        }
+
+
+moveFocusedPatient : Bool -> Model -> Model
+moveFocusedPatient isUp model =
+    let
+        maybeSuggestedPatients =
+            model.suggestedPatients
+
+        newSuggestedPatients =
+            moveFocusedItem isUp maybeSuggestedPatients
+    in
+        { model
+            | suggestedPatients = newSuggestedPatients
         }
 
 
@@ -100,6 +154,19 @@ commitToFocusedDoctor model =
             { model
                 | currentDoctor = KnownDoctor <| SList.selected suggestedDoctors
                 , suggestedDoctors = Nothing
+            }
+
+        Nothing ->
+            model
+
+
+commitToFocusedPatient : Model -> Model
+commitToFocusedPatient model =
+    case model.suggestedPatients of
+        Just suggestedPatients ->
+            { model
+                | currentPatient = KnownPatient <| SList.selected suggestedPatients
+                , suggestedPatients = Nothing
             }
 
         Nothing ->

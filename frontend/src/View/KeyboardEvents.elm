@@ -1,4 +1,4 @@
-module KeyboardEvents exposing (onKeyDown)
+module View.KeyboardEvents exposing (onKeyDown)
 
 import Html exposing (Attribute)
 import Html.Events exposing (on, keyCode)
