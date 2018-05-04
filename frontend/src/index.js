@@ -4,6 +4,7 @@ import './fonts.css';
 
 import './main.css';
 import './autocomplete.css';
+import './View/new_tests.css';
 
 import { Main } from './Main.elm';
 import registerServiceWorker from './registerServiceWorker';

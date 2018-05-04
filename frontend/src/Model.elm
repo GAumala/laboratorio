@@ -30,6 +30,7 @@ module Model
             , Serologico
             )
         , medicalTestName
+        , medicalTestToString
         )
 
 import Http as Http
@@ -92,6 +93,37 @@ medicalTestName test =
 
         Serologico ->
             "Serológico"
+
+
+medicalTestToString : MedicalTest -> String
+medicalTestToString test =
+    case test of
+        Bioquimico ->
+            "bioquimico"
+
+        Coproparasitario ->
+            "coproparasitario"
+
+        Enzimatico ->
+            "enzimatico"
+
+        Examen ->
+            "examen"
+
+        Hemograma ->
+            "hemograma"
+
+        Hemostatico ->
+            "hemostatico"
+
+        Orina ->
+            "orina"
+
+        Parasitologico ->
+            "parasitologico"
+
+        Serologico ->
+            "serologico"
 
 
 type CurrentPatient

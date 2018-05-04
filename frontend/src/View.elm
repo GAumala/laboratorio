@@ -38,6 +38,7 @@ import Model
             , Serologico
             )
         , medicalTestName
+        , medicalTestToString
         )
 import Html
     exposing
@@ -226,15 +227,17 @@ medicalTestCheckBoxCell targetTest selectedTests =
 
         testName =
             medicalTestName targetTest
+
+        testId =
+            "test_" ++ medicalTestToString targetTest
     in
-        td []
-            [ input
+        td [ class "medical-test" ]
+            [ MDL.checkbox
+                { inputId = testId, fieldLabel = testName }
                 [ type_ "checkbox"
                 , checked isChecked
                 , onCheck <| onMedicalTestCheckEvent targetTest
                 ]
-                []
-            , text testName
             ]
 
 
@@ -264,7 +267,7 @@ view model =
     div []
         [ h1 [] [ text "Nuevo Examen" ]
         , patientInputField model.currentPatient model.suggestedPatients
-        , br [] []
         , doctorInputField model.currentDoctor model.suggestedDoctors
+        , br [] []
         , selectedTestsCheckBoxes model.selectedTests
         ]
