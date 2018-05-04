@@ -3,8 +3,9 @@
 	mkdir -p ./src/lib/mdl
 	unzip -d ./src/lib/mdl ./mdl.zip
 	rm ./mdl.zip
+	rm ./src/lib/mdl/package.json
 
 clean:
-	rm -rf ./public/mdl
+	rm -rf ./src/lib/mdl
 
 all: 	./public/mdl

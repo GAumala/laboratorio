@@ -50,13 +50,15 @@ import Html
         , div
         , h1
         , img
+        , label
         , li
         , ul
         , table
         , tr
         , td
         )
-import Html.Attributes exposing (class, classList, checked, id, name, placeholder, type_, value)
+import Html.Attributes exposing (class, classList, for, checked, id, name, placeholder, type_, value)
+import View.MDL as MDL
 import View.AutoComplete as AC
 import Html.Events exposing (onCheck, onInput)
 
@@ -147,15 +149,16 @@ doctorAutoComplete : String -> Maybe (SList.SelectList Doctor) -> Html Msg
 doctorAutoComplete inputName maybeSuggestedDoctors =
     let
         doctorNameInput =
-            input
+            MDL.textField
+                { fieldLabel = "Doctor"
+                , inputId = "input-doctor"
+                }
                 [ type_ "text"
-                , placeholder "Doctor"
                 , name "doctor"
                 , value inputName
                 , onInput SuggestDoctors
                 , AC.onAutoCompleteKeyDown onDoctorACKeysPressed
                 ]
-                []
 
         maybeSuggestions =
             viewDoctorSuggestions maybeSuggestedDoctors
@@ -167,15 +170,16 @@ patientAutoComplete : String -> Maybe (SList.SelectList Patient) -> Html Msg
 patientAutoComplete inputName maybeSuggestedPatients =
     let
         patientNameInput =
-            input
+            MDL.textField
+                { fieldLabel = "Paciente"
+                , inputId = "input-patient"
+                }
                 [ type_ "text"
-                , placeholder "Patient"
                 , name "patient"
                 , value inputName
                 , onInput SuggestPatients
                 , AC.onAutoCompleteKeyDown onPatientACKeysPressed
                 ]
-                []
 
         maybeSuggestions =
             viewPatientSuggestions maybeSuggestedPatients
@@ -258,7 +262,7 @@ selectedTestsCheckBoxes selectedTests =
 view : Model -> Html Msg
 view model =
     div []
-        [ h1 [] [ text "Your Elm App is working!" ]
+        [ h1 [] [ text "Nuevo Examen" ]
         , patientInputField model.currentPatient model.suggestedPatients
         , br [] []
         , doctorInputField model.currentDoctor model.suggestedDoctors

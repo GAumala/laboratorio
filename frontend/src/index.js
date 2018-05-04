@@ -1,4 +1,5 @@
 import './lib/mdl/material.css';
+import './lib/mdl/material.js';
 import './fonts.css';
 
 import './main.css';
