@@ -1,13 +1,26 @@
-module View.MDL exposing (checkbox, deletableChip, textField)
+module View.MDL exposing (checkbox, deletableChip, mainButton, textField)
 
 import Html exposing (Attribute, Html, button, div, i, input, label, span, text)
-import Html.Attributes exposing (autocomplete, class, for, id, name, type_)
-import Html.Events exposing (onClick)
+import Html.Attributes
+    exposing
+        ( autocomplete
+        , class
+        , for
+        , id
+        , name
+        , type_
+        , value
+        )
+import Html.Events exposing (onBlur, onClick, onFocus, onInput)
 
 
-type alias TextFieldConfig =
+type alias TextFieldConfig msg =
     { fieldLabel : String
     , inputId : String
+    , value : String
+    , isFocused : Bool
+    , onInput : String -> msg
+    , onFocusChange : Bool -> msg
     }
 
 
@@ -23,7 +36,13 @@ type alias DeletableChipConfig msg =
     }
 
 
-textField : TextFieldConfig -> List (Attribute msg) -> Html msg
+type alias MainButtonConfig msg =
+    { text : String
+    , onClick : msg
+    }
+
+
+textField : TextFieldConfig msg -> List (Attribute msg) -> Html msg
 textField config attributes =
     let
         mergedAttributes =
@@ -32,10 +51,26 @@ textField config attributes =
                    , class "mdl-textfield__input"
                    , id config.inputId
                    , autocomplete False
+                   , value config.value
+                   , onInput config.onInput
+                   , onFocus <| config.onFocusChange True
+                   , onBlur <| config.onFocusChange False
                    ]
 
+        isDirtyClass =
+            if config.value /= "" then
+                " is-dirty"
+            else
+                ""
+
+        isFocusedClass =
+            if config.isFocused then
+                " is-focused"
+            else
+                ""
+
         containerClass =
-            "mdl-textfield mdl-js-textfield mdl-textfield--floating-label"
+            "mdl-textfield mdl-js-textfield" ++ isDirtyClass ++ isFocusedClass
     in
         div [ class containerClass ]
             [ input
@@ -83,3 +118,12 @@ deletableChip config =
             ]
             [ i [ class "material-icons" ] [ text "cancel" ] ]
         ]
+
+
+mainButton : MainButtonConfig msg -> Html msg
+mainButton config =
+    button
+        [ class "mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored"
+        , onClick config.onClick
+        ]
+        [ text config.text ]

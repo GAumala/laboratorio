@@ -11,8 +11,10 @@ module Model
             , NewPatientSuggestions
             , NoOp
             , UncheckTest
-            , SuggestDoctors
-            , SuggestPatients
+            , ResetDoctor
+            , ResetPatient
+            , TextChange
+            , TextFocusChange
             )
         , Doctor
         , Patient
@@ -31,6 +33,10 @@ module Model
             )
         , medicalTestName
         , medicalTestToString
+        , TextFieldId
+            ( DoctorSetup
+            , PatientSetup
+            )
         )
 
 import Http as Http
@@ -126,13 +132,17 @@ medicalTestToString test =
             "serologico"
 
 
+type alias TextFieldInput =
+    { value : String, hasFocus : Bool }
+
+
 type CurrentPatient
-    = UnknownPatient String
+    = UnknownPatient TextFieldInput
     | KnownPatient Patient
 
 
 type CurrentDoctor
-    = UnknownDoctor String
+    = UnknownDoctor TextFieldInput
     | KnownDoctor Doctor
 
 
@@ -145,15 +155,22 @@ type alias Model =
     }
 
 
+type TextFieldId
+    = DoctorSetup
+    | PatientSetup
+
+
 type Msg
     = CheckTest MedicalTest
     | UncheckTest MedicalTest
-    | SuggestDoctors String
     | NewDoctorSuggestions (Result Http.Error (List Doctor))
-    | SuggestPatients String
     | NewPatientSuggestions (Result Http.Error (List Patient))
     | ChangeFocusedDoctor Bool
     | ChangeFocusedPatient Bool
     | CommitDoctor
     | CommitPatient
+    | ResetDoctor
+    | ResetPatient
+    | TextChange TextFieldId String
+    | TextFocusChange TextFieldId Bool
     | NoOp

@@ -41,6 +41,7 @@ table.setup-checkboxes {
   position: absolute;
   left: 160px;
   top: 13px;
+  text-align: left;
 }
 
 div.center {

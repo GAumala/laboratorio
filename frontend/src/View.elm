@@ -17,13 +17,15 @@ import Model
             )
         , Msg
             ( CheckTest
-            , UncheckTest
-            , SuggestDoctors
-            , SuggestPatients
             , ChangeFocusedDoctor
-            , CommitDoctor
             , ChangeFocusedPatient
+            , CommitDoctor
             , CommitPatient
+            , UncheckTest
+            , ResetDoctor
+            , ResetPatient
+            , TextChange
+            , TextFocusChange
             , NoOp
             )
         , MedicalTest
@@ -36,6 +38,10 @@ import Model
             , Orina
             , Parasitologico
             , Serologico
+            )
+        , TextFieldId
+            ( DoctorSetup
+            , PatientSetup
             )
         , medicalTestName
         , medicalTestToString
@@ -139,21 +145,23 @@ suggestionsListView config =
 autoCompleteInput : SuggestionsConfig a -> Html Msg
 autoCompleteInput config =
     let
-        autoCompleteInput =
+        inputView =
             MDL.textField
                 { fieldLabel = config.hint
                 , inputId = config.inputId
+                , value = config.queryText
+                , onInput = config.onQueryTextInput
+                , isFocused = config.isFocused
+                , onFocusChange = config.onFocusChange
                 }
-                [ value config.queryText
-                , onInput config.onQueryTextInput
-                , AC.onAutoCompleteKeyDown config.onAutoCompleteKeyDown
+                [ AC.onAutoCompleteKeyDown config.onAutoCompleteKeyDown
                 ]
 
         suggestionsList =
             suggestionsListView config
     in
         div [ class "autocomplete-menu setup-input" ]
-            [ autoCompleteInput
+            [ inputView
             , suggestionsList
             ]
 
@@ -227,10 +235,12 @@ selectedTestsRow selectedTests =
 type alias SuggestionsConfig a =
     { hint : String
     , inputId : String
-    , queryText : String
-    , onQueryTextInput : String -> Msg
-    , onAutoCompleteKeyDown : AC.AutoCompleteKey -> Msg
+    , isFocused : Bool
     , maybeSuggestions : Maybe (SList.SelectList a)
+    , onAutoCompleteKeyDown : AC.AutoCompleteKey -> Msg
+    , onFocusChange : Bool -> Msg
+    , onQueryTextInput : String -> Msg
+    , queryText : String
     , suggestionItemView : SList.Position -> a -> Html Msg
     }
 
@@ -261,20 +271,27 @@ patientAutoCompleteConfig model =
         case model.currentPatient of
             KnownPatient patient ->
                 { label = patientLabel
-                , config = Complete { text = patient.name, onDelete = NoOp }
+                , config =
+                    Complete
+                        { text = patient.name
+                        , onDelete =
+                            ResetPatient
+                        }
                 }
 
-            UnknownPatient queryText ->
+            UnknownPatient textFieldState ->
                 { label = patientLabel
                 , config =
                     NeedsSuggestions
-                        { hint = "Buscar pacientes por nombre"
+                        { hint = "Nombre del paciente..."
                         , inputId = "patient-input"
-                        , queryText = queryText
-                        , onQueryTextInput = SuggestPatients
+                        , isFocused = textFieldState.hasFocus
                         , maybeSuggestions = model.suggestedPatients
-                        , suggestionItemView = suggestedPatientRow
                         , onAutoCompleteKeyDown = onPatientACKeysPressed
+                        , onFocusChange = TextFocusChange PatientSetup
+                        , onQueryTextInput = TextChange PatientSetup
+                        , queryText = textFieldState.value
+                        , suggestionItemView = suggestedPatientRow
                         }
                 }
 
@@ -288,20 +305,22 @@ doctorAutoCompleteConfig model =
         case model.currentDoctor of
             KnownDoctor doctor ->
                 { label = doctorLabel
-                , config = Complete { text = doctor.name, onDelete = NoOp }
+                , config = Complete { text = doctor.name, onDelete = ResetDoctor }
                 }
 
-            UnknownDoctor queryText ->
+            UnknownDoctor textFieldState ->
                 { label = doctorLabel
                 , config =
                     NeedsSuggestions
-                        { hint = "Buscar medicos por nombre"
+                        { hint = "Nombre del medico..."
                         , inputId = "doctor-input"
-                        , queryText = queryText
-                        , onQueryTextInput = SuggestDoctors
+                        , isFocused = textFieldState.hasFocus
                         , maybeSuggestions = model.suggestedDoctors
-                        , suggestionItemView = suggestedDoctorRow
                         , onAutoCompleteKeyDown = onDoctorACKeysPressed
+                        , onQueryTextInput = TextChange DoctorSetup
+                        , onFocusChange = TextFocusChange DoctorSetup
+                        , queryText = textFieldState.value
+                        , suggestionItemView = suggestedDoctorRow
                         }
                 }
 
@@ -336,6 +355,11 @@ autoCompleteRow rowConfig =
             ]
 
 
+startButton : Html Msg
+startButton =
+    div [] [ MDL.mainButton { text = "Comenzar", onClick = NoOp } ]
+
+
 view : Model -> Html Msg
 view model =
     div []
@@ -346,4 +370,5 @@ view model =
             , autoCompleteRow <| doctorAutoCompleteConfig model
             , selectedTestsRow model.selectedTests
             ]
+        , startButton
         ]

@@ -1,15 +1,19 @@
 module Model.Transforms
     exposing
         ( addSelectedTest
-        , removeSelectedTest
-        , setDoctorQueryText
-        , setDoctorSuggestions
-        , setPatientQueryText
-        , setPatientSuggestions
-        , moveFocusedDoctor
-        , moveFocusedPatient
         , commitToFocusedDoctor
         , commitToFocusedPatient
+        , moveFocusedDoctor
+        , moveFocusedPatient
+        , removeSelectedTest
+        , resetDoctor
+        , resetPatient
+        , setDoctorQueryText
+        , setDoctorSuggestions
+        , setDoctorTextFocus
+        , setPatientQueryText
+        , setPatientSuggestions
+        , setPatientTextFocus
         )
 
 import String exposing (isEmpty)
@@ -62,7 +66,11 @@ setDoctorQueryText queryText model =
                 model.suggestedDoctors
     in
         { model
-            | currentDoctor = UnknownDoctor queryText
+            | currentDoctor =
+                UnknownDoctor
+                    { value = queryText
+                    , hasFocus = True
+                    }
             , suggestedDoctors = suggestedDoctors
         }
 
@@ -87,7 +95,12 @@ setPatientQueryText queryText model =
                 model.suggestedPatients
     in
         { model
-            | currentPatient = UnknownPatient queryText
+            | currentPatient =
+                UnknownPatient
+                    { value = queryText
+                    , hasFocus =
+                        True
+                    }
             , suggestedPatients = suggestedPatients
         }
 
@@ -171,3 +184,47 @@ commitToFocusedPatient model =
 
         Nothing ->
             model
+
+
+setPatientTextFocus : Bool -> Model -> Model
+setPatientTextFocus hasFocus model =
+    case model.currentPatient of
+        UnknownPatient textFieldState ->
+            { model
+                | currentPatient =
+                    UnknownPatient
+                        { value =
+                            textFieldState.value
+                        , hasFocus = hasFocus
+                        }
+            }
+
+        KnownPatient _ ->
+            model
+
+
+setDoctorTextFocus : Bool -> Model -> Model
+setDoctorTextFocus hasFocus model =
+    case model.currentDoctor of
+        UnknownDoctor textFieldState ->
+            { model
+                | currentDoctor =
+                    UnknownDoctor
+                        { value =
+                            textFieldState.value
+                        , hasFocus = hasFocus
+                        }
+            }
+
+        KnownDoctor _ ->
+            model
+
+
+resetDoctor : Model -> Model
+resetDoctor model =
+    { model | currentDoctor = UnknownDoctor { value = "", hasFocus = False } }
+
+
+resetPatient : Model -> Model
+resetPatient model =
+    { model | currentPatient = UnknownPatient { value = "", hasFocus = False } }

@@ -12,8 +12,8 @@ import UStruct.USet as USet
 
 defaultModel : Model
 defaultModel =
-    { currentPatient = UnknownPatient ""
-    , currentDoctor = UnknownDoctor ""
+    { currentPatient = UnknownPatient { value = "", hasFocus = False }
+    , currentDoctor = UnknownDoctor { value = "", hasFocus = False }
     , selectedTests = USet.empty
     , suggestedDoctors = Nothing
     , suggestedPatients = Nothing
