@@ -3,12 +3,48 @@ td.medical-test {
   height: 40px;
 }
 
-.tests-table {
-  text-align: left;
-  margin-left: auto;
-  margin-right: auto;
-}
-
 div.test-row {
   float: left;
+}
+
+p.setup {
+  position: relative;
+}
+
+p.setup-autocomplete {
+  position: relative;
+  height: 60px;
+  margin-bottom: 0;
+}
+p.setup-table {
+  position: relative;
+  width: 460px;
+  height: 280px;
+}
+strong.setup {
+  position: absolute;
+  width: 110px;
+  text-align: right;
+  left: 0;
+  top: 24px;
+}
+
+div.setup-chip-container {
+  position: absolute;
+  padding-top: 17px;
+}
+.setup-input {
+  margin-left: 160px;
+}
+
+table.setup-checkboxes {
+  position: absolute;
+  left: 160px;
+  top: 13px;
+}
+
+div.center {
+  display: inline-block;
+  margin-left: auto;
+  margin-right: auto;
 }

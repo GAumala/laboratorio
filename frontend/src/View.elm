@@ -53,7 +53,9 @@ import Html
         , img
         , label
         , li
+        , p
         , ul
+        , strong
         , table
         , tr
         , td
@@ -122,90 +124,38 @@ onPatientACKeysPressed key =
             NoOp
 
 
-viewDoctorSuggestions : Maybe (SList.SelectList Doctor) -> Html Msg
-viewDoctorSuggestions maybeSuggestedDoctors =
-    case maybeSuggestedDoctors of
-        Just suggestedDoctors ->
+suggestionsListView : SuggestionsConfig a -> Html Msg
+suggestionsListView config =
+    case config.maybeSuggestions of
+        Just suggestedItems ->
             ul [ class "autocomplete-list" ] <|
                 SList.toList <|
-                    SList.mapBy suggestedDoctorRow suggestedDoctors
+                    SList.mapBy config.suggestionItemView suggestedItems
 
         Nothing ->
             div [] []
 
 
-viewPatientSuggestions : Maybe (SList.SelectList Patient) -> Html Msg
-viewPatientSuggestions maybeSuggestedPatients =
-    case maybeSuggestedPatients of
-        Just suggestedPatients ->
-            ul [ class "autocomplete-list" ] <|
-                SList.toList <|
-                    SList.mapBy suggestedPatientRow suggestedPatients
-
-        Nothing ->
-            div [] []
-
-
-doctorAutoComplete : String -> Maybe (SList.SelectList Doctor) -> Html Msg
-doctorAutoComplete inputName maybeSuggestedDoctors =
+autoCompleteInput : SuggestionsConfig a -> Html Msg
+autoCompleteInput config =
     let
-        doctorNameInput =
+        autoCompleteInput =
             MDL.textField
-                { fieldLabel = "Doctor"
-                , inputId = "input-doctor"
+                { fieldLabel = config.hint
+                , inputId = config.inputId
                 }
-                [ type_ "text"
-                , name "doctor"
-                , value inputName
-                , onInput SuggestDoctors
-                , AC.onAutoCompleteKeyDown onDoctorACKeysPressed
+                [ value config.queryText
+                , onInput config.onQueryTextInput
+                , AC.onAutoCompleteKeyDown config.onAutoCompleteKeyDown
                 ]
 
-        maybeSuggestions =
-            viewDoctorSuggestions maybeSuggestedDoctors
+        suggestionsList =
+            suggestionsListView config
     in
-        div [ class "autocomplete-menu" ] [ doctorNameInput, maybeSuggestions ]
-
-
-patientAutoComplete : String -> Maybe (SList.SelectList Patient) -> Html Msg
-patientAutoComplete inputName maybeSuggestedPatients =
-    let
-        patientNameInput =
-            MDL.textField
-                { fieldLabel = "Paciente"
-                , inputId = "input-patient"
-                }
-                [ type_ "text"
-                , name "patient"
-                , value inputName
-                , onInput SuggestPatients
-                , AC.onAutoCompleteKeyDown onPatientACKeysPressed
-                ]
-
-        maybeSuggestions =
-            viewPatientSuggestions maybeSuggestedPatients
-    in
-        div [ class "autocomplete-menu" ] [ patientNameInput, maybeSuggestions ]
-
-
-doctorInputField : CurrentDoctor -> Maybe (SList.SelectList Doctor) -> Html Msg
-doctorInputField currentDoctor maybeSuggestedDoctors =
-    case currentDoctor of
-        UnknownDoctor inputName ->
-            doctorAutoComplete inputName maybeSuggestedDoctors
-
-        KnownDoctor doctor ->
-            a [] [ text doctor.name ]
-
-
-patientInputField : CurrentPatient -> Maybe (SList.SelectList Patient) -> Html Msg
-patientInputField currentPatient maybeSuggestedPatients =
-    case currentPatient of
-        UnknownPatient inputName ->
-            patientAutoComplete inputName maybeSuggestedPatients
-
-        KnownPatient patient ->
-            a [] [ text patient.name ]
+        div [ class "autocomplete-menu setup-input" ]
+            [ autoCompleteInput
+            , suggestionsList
+            ]
 
 
 onMedicalTestCheckEvent : MedicalTest -> (Bool -> Msg)
@@ -234,40 +184,166 @@ medicalTestCheckBoxCell targetTest selectedTests =
         td [ class "medical-test" ]
             [ MDL.checkbox
                 { inputId = testId, fieldLabel = testName }
-                [ type_ "checkbox"
-                , checked isChecked
+                [ checked isChecked
                 , onCheck <| onMedicalTestCheckEvent targetTest
                 ]
             ]
 
 
-selectedTestsCheckBoxes : USet.Struct MedicalTest -> Html Msg
-selectedTestsCheckBoxes selectedTests =
-    table [ class "tests-table" ]
+selectedTestsCheckboxes : USet.Struct MedicalTest -> Html Msg
+selectedTestsCheckboxes selectedTests =
+    table [ class "setup-checkboxes" ]
         [ tr []
             [ medicalTestCheckBoxCell Bioquimico selectedTests
             , medicalTestCheckBoxCell Coproparasitario selectedTests
-            , medicalTestCheckBoxCell Enzimatico selectedTests
             ]
         , tr []
             [ medicalTestCheckBoxCell Examen selectedTests
             , medicalTestCheckBoxCell Hemograma selectedTests
-            , medicalTestCheckBoxCell Hemostatico selectedTests
             ]
         , tr []
             [ medicalTestCheckBoxCell Orina selectedTests
             , medicalTestCheckBoxCell Parasitologico selectedTests
-            , medicalTestCheckBoxCell Serologico selectedTests
+            ]
+        , tr []
+            [ medicalTestCheckBoxCell Enzimatico selectedTests
+            , medicalTestCheckBoxCell Hemostatico selectedTests
+            ]
+        , tr []
+            [ medicalTestCheckBoxCell Serologico selectedTests
+            , td [] []
             ]
         ]
+
+
+selectedTestsRow : USet.Struct MedicalTest -> Html Msg
+selectedTestsRow selectedTests =
+    p [ class "setup-table" ]
+        [ strong [ class "setup" ] [ text "Reportes:" ]
+        , selectedTestsCheckboxes selectedTests
+        ]
+
+
+type alias SuggestionsConfig a =
+    { hint : String
+    , inputId : String
+    , queryText : String
+    , onQueryTextInput : String -> Msg
+    , onAutoCompleteKeyDown : AC.AutoCompleteKey -> Msg
+    , maybeSuggestions : Maybe (SList.SelectList a)
+    , suggestionItemView : SList.Position -> a -> Html Msg
+    }
+
+
+type alias CompleteItemConfig =
+    { text : String
+    , onDelete : Msg
+    }
+
+
+type AutoCompleteConfig a
+    = Complete CompleteItemConfig
+    | NeedsSuggestions (SuggestionsConfig a)
+
+
+type alias AutoCompleteRowConfig a =
+    { label : String
+    , config : AutoCompleteConfig a
+    }
+
+
+patientAutoCompleteConfig : Model -> AutoCompleteRowConfig Patient
+patientAutoCompleteConfig model =
+    let
+        patientLabel =
+            "Paciente:"
+    in
+        case model.currentPatient of
+            KnownPatient patient ->
+                { label = patientLabel
+                , config = Complete { text = patient.name, onDelete = NoOp }
+                }
+
+            UnknownPatient queryText ->
+                { label = patientLabel
+                , config =
+                    NeedsSuggestions
+                        { hint = "Buscar pacientes por nombre"
+                        , inputId = "patient-input"
+                        , queryText = queryText
+                        , onQueryTextInput = SuggestPatients
+                        , maybeSuggestions = model.suggestedPatients
+                        , suggestionItemView = suggestedPatientRow
+                        , onAutoCompleteKeyDown = onPatientACKeysPressed
+                        }
+                }
+
+
+doctorAutoCompleteConfig : Model -> AutoCompleteRowConfig Doctor
+doctorAutoCompleteConfig model =
+    let
+        doctorLabel =
+            "Medico:"
+    in
+        case model.currentDoctor of
+            KnownDoctor doctor ->
+                { label = doctorLabel
+                , config = Complete { text = doctor.name, onDelete = NoOp }
+                }
+
+            UnknownDoctor queryText ->
+                { label = doctorLabel
+                , config =
+                    NeedsSuggestions
+                        { hint = "Buscar medicos por nombre"
+                        , inputId = "doctor-input"
+                        , queryText = queryText
+                        , onQueryTextInput = SuggestDoctors
+                        , maybeSuggestions = model.suggestedDoctors
+                        , suggestionItemView = suggestedDoctorRow
+                        , onAutoCompleteKeyDown = onDoctorACKeysPressed
+                        }
+                }
+
+
+completeItemView : CompleteItemConfig -> Html Msg
+completeItemView config =
+    div [ class "setup-input setup-chip-container" ]
+        [ MDL.deletableChip
+            { text = config.text
+            , onClick = config.onDelete
+            }
+        ]
+
+
+autoCompleteRow : AutoCompleteRowConfig a -> Html Msg
+autoCompleteRow rowConfig =
+    let
+        labelView =
+            strong [ class "setup" ] [ text rowConfig.label ]
+
+        inputView =
+            case rowConfig.config of
+                Complete config ->
+                    completeItemView config
+
+                NeedsSuggestions config ->
+                    autoCompleteInput config
+    in
+        p [ class "setup-autocomplete" ]
+            [ labelView
+            , inputView
+            ]
 
 
 view : Model -> Html Msg
 view model =
     div []
-        [ h1 [] [ text "Nuevo Examen" ]
-        , patientInputField model.currentPatient model.suggestedPatients
-        , doctorInputField model.currentDoctor model.suggestedDoctors
-        , br [] []
-        , selectedTestsCheckBoxes model.selectedTests
+        [ h1 []
+            [ text "Nuevo Examen" ]
+        , div [ class "center" ]
+            [ autoCompleteRow <| patientAutoCompleteConfig model
+            , autoCompleteRow <| doctorAutoCompleteConfig model
+            , selectedTestsRow model.selectedTests
+            ]
         ]
