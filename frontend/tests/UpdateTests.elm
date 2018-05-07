@@ -8,11 +8,14 @@ import Model
         , Msg
             ( CheckTest
             , UncheckTest
-            , SuggestDoctors
-            , SuggestPatients
+            , TextChange
+            , TextFocusChange
             )
         , CurrentDoctor(UnknownDoctor)
         , CurrentPatient(UnknownPatient)
+        , Model
+        , SetupModel
+        , TextFieldId(DoctorSetup, PatientSetup)
         )
 import Update exposing (update)
 import Init exposing (defaultModel)
@@ -31,20 +34,24 @@ all =
                 in
                     Expect.equal
                         updated
-                        ( { defaultModel
-                            | selectedTests =
-                                USet.fromList [ Hemograma ]
-                          }
+                        ( fromSetupM <|
+                            \m ->
+                                { m
+                                    | selectedTests =
+                                        USet.fromList [ Hemograma ]
+                                }
                         , Cmd.none
                         )
         , test "should remove selected tests with the UncheckTest msg" <|
             \_ ->
                 let
                     model =
-                        { defaultModel
-                            | selectedTests =
-                                USet.fromList [ Hemograma ]
-                        }
+                        fromSetupM <|
+                            \m ->
+                                { m
+                                    | selectedTests =
+                                        USet.fromList [ Hemograma ]
+                                }
 
                     updated =
                         update (UncheckTest Hemograma) model
@@ -69,27 +76,44 @@ testPatient =
     }
 
 
-suggestDoctorsMsg : Test
-suggestDoctorsMsg =
+fromSetupM : (SetupModel -> SetupModel) -> Model
+fromSetupM transform =
+    { defaultModel | setupModel = transform defaultModel.setupModel }
+
+
+suggestSetupDoctorTest : Test
+suggestSetupDoctorTest =
     let
+        typeTextAction =
+            TextChange DoctorSetup "do"
+
+        untypeTextAction =
+            TextChange DoctorSetup ""
+
         ( modelAfterTyping, cmdIssuedAfterTyping ) =
-            update (SuggestDoctors "do") defaultModel
+            update typeTextAction defaultModel
 
         expectedModelAfterTyping =
-            { defaultModel
-                | currentDoctor = UnknownDoctor "do"
-            }
+            fromSetupM <|
+                \m ->
+                    { m
+                        | currentDoctor =
+                            UnknownDoctor
+                                { value = "do", hasFocus = True }
+                    }
 
         modelBeforeDeleting =
-            { defaultModel
-                | suggestedDoctors =
-                    Just <| SList.fromLists [] testDoctor []
-            }
+            fromSetupM <|
+                \m ->
+                    { m
+                        | suggestedDoctors =
+                            Just <| SList.fromLists [] testDoctor []
+                    }
 
         ( modelAfterDeleting, cmdIssuedAfterDeleting ) =
-            update (SuggestDoctors "") modelBeforeDeleting
+            update untypeTextAction modelBeforeDeleting
     in
-        describe "SuggestDoctors"
+        describe "Suggest a doctor in setup"
             [ test "should send http request after typing" <|
                 \_ -> Expect.notEqual cmdIssuedAfterTyping Cmd.none
             , test "should set typed text as current doctor's query text" <|
@@ -104,27 +128,41 @@ suggestDoctorsMsg =
             ]
 
 
-suggestPatientsMsg : Test
-suggestPatientsMsg =
+suggestSetupPatientTest : Test
+suggestSetupPatientTest =
     let
+        typeTextAction =
+            TextChange PatientSetup "do"
+
+        untypeTextAction =
+            TextChange PatientSetup ""
+
         ( modelAfterTyping, cmdIssuedAfterTyping ) =
-            update (SuggestPatients "do") defaultModel
+            update typeTextAction defaultModel
 
         expectedModelAfterTyping =
-            { defaultModel
-                | currentPatient = UnknownPatient "do"
-            }
+            fromSetupM <|
+                \m ->
+                    { m
+                        | currentPatient =
+                            UnknownPatient
+                                { value = "do"
+                                , hasFocus = True
+                                }
+                    }
 
         modelBeforeDeleting =
-            { defaultModel
-                | suggestedPatients =
-                    Just <| SList.fromLists [] testPatient []
-            }
+            fromSetupM <|
+                \m ->
+                    { m
+                        | suggestedPatients =
+                            Just <| SList.fromLists [] testPatient []
+                    }
 
         ( modelAfterDeleting, cmdIssuedAfterDeleting ) =
-            update (SuggestPatients "") modelBeforeDeleting
+            update untypeTextAction modelBeforeDeleting
     in
-        describe "SuggestPatients"
+        describe "Sugggest patient in setup"
             [ test "should send http request after typing" <|
                 \_ -> Expect.notEqual cmdIssuedAfterTyping Cmd.none
             , test "should set typed text as current doctor's query text" <|

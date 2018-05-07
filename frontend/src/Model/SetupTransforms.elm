@@ -1,4 +1,4 @@
-module Model.Transforms
+module Model.SetupTransforms
     exposing
         ( addSelectedTest
         , commitToFocusedDoctor
@@ -25,12 +25,12 @@ import Model
         , Patient
         , CurrentDoctor(KnownDoctor, UnknownDoctor)
         , CurrentPatient(KnownPatient, UnknownPatient)
-        , Model
         , MedicalTest
+        , SetupModel
         )
 
 
-addSelectedTest : MedicalTest -> Model -> Model
+addSelectedTest : MedicalTest -> SetupModel -> SetupModel
 addSelectedTest testToAdd model =
     { model
         | selectedTests =
@@ -38,7 +38,7 @@ addSelectedTest testToAdd model =
     }
 
 
-removeSelectedTest : MedicalTest -> Model -> Model
+removeSelectedTest : MedicalTest -> SetupModel -> SetupModel
 removeSelectedTest testToRemove model =
     { model
         | selectedTests =
@@ -46,7 +46,7 @@ removeSelectedTest testToRemove model =
     }
 
 
-setDoctorSuggestions : List Doctor -> Model -> Model
+setDoctorSuggestions : List Doctor -> SetupModel -> SetupModel
 setDoctorSuggestions suggestedDoctors model =
     case suggestedDoctors of
         [] ->
@@ -56,7 +56,7 @@ setDoctorSuggestions suggestedDoctors model =
             { model | suggestedDoctors = Just <| SList.fromLists [] x xs }
 
 
-setDoctorQueryText : String -> Model -> Model
+setDoctorQueryText : String -> SetupModel -> SetupModel
 setDoctorQueryText queryText model =
     let
         suggestedDoctors =
@@ -75,7 +75,7 @@ setDoctorQueryText queryText model =
         }
 
 
-setPatientSuggestions : List Patient -> Model -> Model
+setPatientSuggestions : List Patient -> SetupModel -> SetupModel
 setPatientSuggestions suggestedPatients model =
     case suggestedPatients of
         [] ->
@@ -85,7 +85,7 @@ setPatientSuggestions suggestedPatients model =
             { model | suggestedPatients = Just <| SList.fromLists [] x xs }
 
 
-setPatientQueryText : String -> Model -> Model
+setPatientQueryText : String -> SetupModel -> SetupModel
 setPatientQueryText queryText model =
     let
         suggestedPatients =
@@ -131,7 +131,7 @@ moveFocusedItem isUp maybeItems =
             Nothing
 
 
-moveFocusedDoctor : Bool -> Model -> Model
+moveFocusedDoctor : Bool -> SetupModel -> SetupModel
 moveFocusedDoctor isUp model =
     let
         maybeSuggestedDoctors =
@@ -146,7 +146,7 @@ moveFocusedDoctor isUp model =
         }
 
 
-moveFocusedPatient : Bool -> Model -> Model
+moveFocusedPatient : Bool -> SetupModel -> SetupModel
 moveFocusedPatient isUp model =
     let
         maybeSuggestedPatients =
@@ -160,7 +160,7 @@ moveFocusedPatient isUp model =
         }
 
 
-commitToFocusedDoctor : Model -> Model
+commitToFocusedDoctor : SetupModel -> SetupModel
 commitToFocusedDoctor model =
     case model.suggestedDoctors of
         Just suggestedDoctors ->
@@ -173,7 +173,7 @@ commitToFocusedDoctor model =
             model
 
 
-commitToFocusedPatient : Model -> Model
+commitToFocusedPatient : SetupModel -> SetupModel
 commitToFocusedPatient model =
     case model.suggestedPatients of
         Just suggestedPatients ->
@@ -186,7 +186,7 @@ commitToFocusedPatient model =
             model
 
 
-setPatientTextFocus : Bool -> Model -> Model
+setPatientTextFocus : Bool -> SetupModel -> SetupModel
 setPatientTextFocus hasFocus model =
     case model.currentPatient of
         UnknownPatient textFieldState ->
@@ -203,7 +203,7 @@ setPatientTextFocus hasFocus model =
             model
 
 
-setDoctorTextFocus : Bool -> Model -> Model
+setDoctorTextFocus : Bool -> SetupModel -> SetupModel
 setDoctorTextFocus hasFocus model =
     case model.currentDoctor of
         UnknownDoctor textFieldState ->
@@ -220,11 +220,11 @@ setDoctorTextFocus hasFocus model =
             model
 
 
-resetDoctor : Model -> Model
+resetDoctor : SetupModel -> SetupModel
 resetDoctor model =
     { model | currentDoctor = UnknownDoctor { value = "", hasFocus = False } }
 
 
-resetPatient : Model -> Model
+resetPatient : SetupModel -> SetupModel
 resetPatient model =
     { model | currentPatient = UnknownPatient { value = "", hasFocus = False } }

@@ -20,9 +20,10 @@ import Model
             )
         , CurrentDoctor(UnknownDoctor)
         , CurrentPatient(UnknownPatient)
+        , SetupModel
         , TextFieldId(DoctorSetup, PatientSetup)
         )
-import Model.Transforms
+import Model.SetupTransforms
     exposing
         ( addSelectedTest
         , commitToFocusedDoctor
@@ -49,82 +50,94 @@ baseUrl =
 
 updateTextValue : TextFieldId -> String -> Model -> ( Model, Cmd Msg )
 updateTextValue textFieldId newValue model =
-    case textFieldId of
-        DoctorSetup ->
-            ( setDoctorQueryText newValue model
-            , getDoctorSuggestions baseUrl
-                newValue
-            )
+    let
+        updateSetupM transform =
+            { model | setupModel = transform model.setupModel }
+    in
+        case textFieldId of
+            DoctorSetup ->
+                ( setDoctorQueryText newValue |> updateSetupM
+                , getDoctorSuggestions baseUrl
+                    newValue
+                )
 
-        PatientSetup ->
-            ( setPatientQueryText newValue model
-            , getPatientSuggestions baseUrl
-                newValue
-            )
+            PatientSetup ->
+                ( setPatientQueryText newValue |> updateSetupM
+                , getPatientSuggestions baseUrl
+                    newValue
+                )
 
 
 updateTextFocusState : TextFieldId -> Bool -> Model -> ( Model, Cmd Msg )
 updateTextFocusState textFieldId newValue model =
-    case textFieldId of
-        DoctorSetup ->
-            ( setDoctorTextFocus newValue model
-            , Cmd.none
-            )
+    let
+        updateSetupM transform =
+            { model | setupModel = transform model.setupModel }
+    in
+        case textFieldId of
+            DoctorSetup ->
+                ( setDoctorTextFocus newValue |> updateSetupM
+                , Cmd.none
+                )
 
-        PatientSetup ->
-            ( setPatientTextFocus newValue model
-            , Cmd.none
-            )
+            PatientSetup ->
+                ( setPatientTextFocus newValue |> updateSetupM
+                , Cmd.none
+                )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        CheckTest testToAdd ->
-            ( addSelectedTest testToAdd model, Cmd.none )
+    let
+        updateSetupM transform =
+            { model | setupModel = transform model.setupModel }
+    in
+        case msg of
+            CheckTest testToAdd ->
+                ( addSelectedTest testToAdd |> updateSetupM, Cmd.none )
 
-        UncheckTest testToRemove ->
-            ( removeSelectedTest testToRemove model, Cmd.none )
+            UncheckTest testToRemove ->
+                ( removeSelectedTest testToRemove |> updateSetupM, Cmd.none )
 
-        NewDoctorSuggestions response ->
-            case response of
-                Ok suggestions ->
-                    ( setDoctorSuggestions suggestions model, Cmd.none )
+            NewDoctorSuggestions response ->
+                case response of
+                    Ok suggestions ->
+                        ( setDoctorSuggestions suggestions |> updateSetupM, Cmd.none )
 
-                Err error ->
-                    ( model, Cmd.none )
+                    Err error ->
+                        ( model, Cmd.none )
 
-        NewPatientSuggestions response ->
-            case response of
-                Ok suggestions ->
-                    ( setPatientSuggestions suggestions model, Cmd.none )
+            NewPatientSuggestions response ->
+                case response of
+                    Ok suggestions ->
+                        ( setPatientSuggestions suggestions |> updateSetupM, Cmd.none )
 
-                Err error ->
-                    ( model, Cmd.none )
+                    Err error ->
+                        ( model, Cmd.none )
 
-        TextChange textFieldId value ->
-            updateTextValue textFieldId value model
+            TextChange textFieldId value ->
+                updateTextValue textFieldId value model
 
-        TextFocusChange textFieldId value ->
-            updateTextFocusState textFieldId value model
+            TextFocusChange textFieldId value ->
+                updateTextFocusState textFieldId value model
 
-        ChangeFocusedDoctor isUp ->
-            ( moveFocusedDoctor isUp model, Cmd.none )
+            ChangeFocusedDoctor isUp ->
+                ( moveFocusedDoctor isUp |> updateSetupM, Cmd.none )
 
-        ChangeFocusedPatient isUp ->
-            ( moveFocusedPatient isUp model, Cmd.none )
+            ChangeFocusedPatient isUp ->
+                ( moveFocusedPatient isUp |> updateSetupM, Cmd.none )
 
-        CommitDoctor ->
-            ( commitToFocusedDoctor model, Cmd.none )
+            CommitDoctor ->
+                ( commitToFocusedDoctor |> updateSetupM, Cmd.none )
 
-        CommitPatient ->
-            ( commitToFocusedPatient model, Cmd.none )
+            CommitPatient ->
+                ( commitToFocusedPatient |> updateSetupM, Cmd.none )
 
-        ResetDoctor ->
-            ( resetDoctor model, Cmd.none )
+            ResetDoctor ->
+                ( resetDoctor |> updateSetupM, Cmd.none )
 
-        ResetPatient ->
-            ( resetPatient model, Cmd.none )
+            ResetPatient ->
+                ( resetPatient |> updateSetupM, Cmd.none )
 
-        _ ->
-            ( model, Cmd.none )
+            _ ->
+                ( model, Cmd.none )

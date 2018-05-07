@@ -20,6 +20,19 @@ module Model
         , Patient
         , CurrentDoctor(KnownDoctor, UnknownDoctor)
         , CurrentPatient(KnownPatient, UnknownPatient)
+        , Section
+            ( SetupS
+            , BioquimicoS
+            , CoproparasitarioS
+            , EnzimaticoS
+            , ExamenS
+            , HemogramaS
+            , HemostaticoS
+            , OrinaS
+            , ParasitologicoS
+            , SerologicoS
+            , FinishS
+            )
         , MedicalTest
             ( Bioquimico
             , Coproparasitario
@@ -33,6 +46,7 @@ module Model
             )
         , medicalTestName
         , medicalTestToString
+        , SetupModel
         , TextFieldId
             ( DoctorSetup
             , PatientSetup
@@ -146,12 +160,32 @@ type CurrentDoctor
     | KnownDoctor Doctor
 
 
-type alias Model =
+type alias SetupModel =
     { currentPatient : CurrentPatient
     , currentDoctor : CurrentDoctor
     , suggestedDoctors : Maybe (SList.SelectList Doctor)
     , suggestedPatients : Maybe (SList.SelectList Patient)
     , selectedTests : USet.Struct MedicalTest
+    }
+
+
+type Section
+    = SetupS
+    | BioquimicoS
+    | CoproparasitarioS
+    | EnzimaticoS
+    | ExamenS
+    | HemogramaS
+    | HemostaticoS
+    | OrinaS
+    | ParasitologicoS
+    | SerologicoS
+    | FinishS
+
+
+type alias Model =
+    { setupModel : SetupModel
+    , sections : SList.SelectList Section
     }
 
 
