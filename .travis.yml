@@ -1,0 +1,11 @@
+language: node_js
+
+sudo: required
+
+node_js:
+  - '10'
+
+install:
+  - npm i create-elm-app -g
+
+script: cd frontend && elm-app test
