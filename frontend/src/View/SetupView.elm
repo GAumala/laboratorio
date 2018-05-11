@@ -355,8 +355,8 @@ autoCompleteRow rowConfig =
             ]
 
 
-startButton : Html Msg
-startButton =
+startButtonRow : Html Msg
+startButtonRow =
     div [] [ MDL.mainButton { text = "Comenzar", onClick = NoOp } ]
 
 
@@ -369,6 +369,6 @@ view model =
             [ autoCompleteRow <| patientAutoCompleteConfig model
             , autoCompleteRow <| doctorAutoCompleteConfig model
             , selectedTestsRow model.selectedTests
+            , startButtonRow
             ]
-        , startButton
         ]

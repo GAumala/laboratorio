@@ -32,6 +32,7 @@ strong.setup {
 div.setup-chip-container {
   position: absolute;
   padding-top: 17px;
+  padding-bottom: 15px;
 }
 .setup-input {
   margin-left: 160px;
