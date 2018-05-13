@@ -7,12 +7,18 @@ import Model
         ( MedicalTest(Hemograma)
         , Msg
             ( CheckTest
+            , CommitDoctor
+            , CommitPatient
             , UncheckTest
             , TextChange
             , TextFocusChange
+            , NewDoctorSuggestions
+            , NewPatientSuggestions
+            , ResetDoctor
+            , ResetPatient
             )
-        , CurrentDoctor(UnknownDoctor)
-        , CurrentPatient(UnknownPatient)
+        , CurrentDoctor(UnknownDoctor, KnownDoctor)
+        , CurrentPatient(UnknownPatient, KnownPatient)
         , Model
         , SetupModel
         , TextFieldId(DoctorSetup, PatientSetup)
@@ -194,4 +200,160 @@ inputPatientTests =
                         update (TextChange PatientSetup "") modelWithPatientQueryText
                 in
                     \_ -> Expect.equal issuedCmd Cmd.none
+            ]
+
+
+managingDoctorSuggestionsTests : Test
+managingDoctorSuggestionsTests =
+    let
+        nonEmptyOkResult =
+            Ok [ testDoctor ]
+
+        emptyOkResult =
+            Ok []
+
+        modelWithOneSuggestedDoctor =
+            withNewSetupModel <|
+                \m ->
+                    { m
+                        | suggestedDoctors =
+                            Just <| SList.fromLists [] testDoctor []
+                    }
+
+        modelWithNothingSuggestions =
+            withNewSetupModel <|
+                \m ->
+                    { m
+                        | suggestedDoctors = Nothing
+                    }
+
+        modelWithKnownDoctor =
+            withNewSetupModel <|
+                \m ->
+                    { m
+                        | currentDoctor = KnownDoctor testDoctor
+                        , suggestedDoctors = Nothing
+                    }
+    in
+        describe "Managing doctor suggestions"
+            [ describe "Receiving a list of doctor suggestions via NewDoctorSuggestions"
+                [ test "if the list is NOT empty, should replace the current suggestedDoctors" <|
+                    let
+                        ( updatedModel, _ ) =
+                            update (NewDoctorSuggestions <| nonEmptyOkResult) defaultModel
+
+                        expectedModel =
+                            modelWithOneSuggestedDoctor
+                    in
+                        \_ -> Expect.equal updatedModel expectedModel
+                , test "if the list is empty, should set suggestedDoctors as Nothing" <|
+                    let
+                        ( updatedModel, _ ) =
+                            update (NewDoctorSuggestions <| emptyOkResult) modelWithOneSuggestedDoctor
+
+                        expectedModel =
+                            modelWithNothingSuggestions
+                    in
+                        \_ -> Expect.equal updatedModel expectedModel
+                ]
+            , describe "Choosing a suggestion With CommitDoctor"
+                [ test "Should remove the suggestions and set a KnownDoctor as currentDoctor" <|
+                    let
+                        ( updatedModel, _ ) =
+                            update CommitDoctor modelWithOneSuggestedDoctor
+
+                        expectedModel =
+                            modelWithKnownDoctor
+                    in
+                        \_ -> Expect.equal updatedModel expectedModel
+                ]
+            , describe "Clearing the selected doctor with ResetDoctor"
+                [ test "Should replace the currentDoctor with an empty UnknownDoctor" <|
+                    let
+                        ( updatedModel, _ ) =
+                            update ResetDoctor modelWithKnownDoctor
+
+                        expectedModel =
+                            modelWithNothingSuggestions
+                    in
+                        \_ -> Expect.equal updatedModel expectedModel
+                ]
+            ]
+
+
+managingPatientSuggestionsTests : Test
+managingPatientSuggestionsTests =
+    let
+        nonEmptyOkResult =
+            Ok [ testPatient ]
+
+        emptyOkResult =
+            Ok []
+
+        modelWithOneSuggestedPatient =
+            withNewSetupModel <|
+                \m ->
+                    { m
+                        | suggestedPatients =
+                            Just <| SList.fromLists [] testPatient []
+                    }
+
+        modelWithNothingSuggestions =
+            withNewSetupModel <|
+                \m ->
+                    { m
+                        | suggestedPatients = Nothing
+                    }
+
+        modelWithKnownPatient =
+            withNewSetupModel <|
+                \m ->
+                    { m
+                        | currentPatient = KnownPatient testPatient
+                        , suggestedPatients = Nothing
+                    }
+    in
+        describe "Managing patient suggestions"
+            [ describe "Receiving a list of patient suggestions via NewPatientSuggestions"
+                [ test "if the list is NOT empty, should replace the current suggestedPatients" <|
+                    let
+                        ( updatedModel, _ ) =
+                            update (NewPatientSuggestions <| nonEmptyOkResult) defaultModel
+
+                        expectedModel =
+                            modelWithOneSuggestedPatient
+                    in
+                        \_ -> Expect.equal updatedModel expectedModel
+                , test "if the list is empty, should set suggestedPatients as Nothing" <|
+                    let
+                        ( updatedModel, _ ) =
+                            update (NewPatientSuggestions <| emptyOkResult) modelWithOneSuggestedPatient
+
+                        expectedModel =
+                            modelWithNothingSuggestions
+                    in
+                        \_ -> Expect.equal updatedModel expectedModel
+                ]
+            , describe "Choosing a suggestion With CommitPatient"
+                [ test "Should remove the suggestions and set a KnownPatient as currentPatient" <|
+                    let
+                        ( updatedModel, _ ) =
+                            update CommitPatient modelWithOneSuggestedPatient
+
+                        expectedModel =
+                            modelWithKnownPatient
+                    in
+                        \_ -> Expect.equal updatedModel expectedModel
+                ]
+            , describe "Clearing the selected patient with ResetPatient"
+                [ test "Should replace the currentPatient with an empty UnknownPatient" <|
+                    let
+                        ( updatedModel, _ ) =
+                            update ResetPatient modelWithKnownPatient
+
+                        expectedModel =
+                            modelWithNothingSuggestions
+                    in
+                        \_ -> Expect.equal updatedModel expectedModel
+                ]
             ]
