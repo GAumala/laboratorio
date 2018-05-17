@@ -39,10 +39,6 @@ import Model
             , Parasitologico
             , Serologico
             )
-        , TextFieldId
-            ( DoctorSetup
-            , PatientSetup
-            )
         , medicalTestName
         , medicalTestToString
         )
@@ -153,9 +149,10 @@ autoCompleteInput config =
                 , onInput = config.onQueryTextInput
                 , isFocused = config.isFocused
                 , onFocusChange = config.onFocusChange
+                , extraInputAttributes =
+                    [ AC.onAutoCompleteKeyDown config.onAutoCompleteKeyDown
+                    ]
                 }
-                [ AC.onAutoCompleteKeyDown config.onAutoCompleteKeyDown
-                ]
 
         suggestionsList =
             suggestionsListView config
@@ -267,6 +264,9 @@ patientAutoCompleteConfig model =
     let
         patientLabel =
             "Paciente:"
+
+        textFieldId =
+            "patient-input"
     in
         case model.currentPatient of
             KnownPatient patient ->
@@ -284,12 +284,12 @@ patientAutoCompleteConfig model =
                 , config =
                     NeedsSuggestions
                         { hint = "Nombre del paciente..."
-                        , inputId = "patient-input"
+                        , inputId = textFieldId
                         , isFocused = textFieldState.hasFocus
                         , maybeSuggestions = model.suggestedPatients
                         , onAutoCompleteKeyDown = onPatientACKeysPressed
-                        , onFocusChange = TextFocusChange PatientSetup
-                        , onQueryTextInput = TextChange PatientSetup
+                        , onFocusChange = TextFocusChange textFieldId
+                        , onQueryTextInput = TextChange textFieldId
                         , queryText = textFieldState.value
                         , suggestionItemView = suggestedPatientRow
                         }
@@ -301,6 +301,9 @@ doctorAutoCompleteConfig model =
     let
         doctorLabel =
             "Medico:"
+
+        textFieldId =
+            "doctor-input"
     in
         case model.currentDoctor of
             KnownDoctor doctor ->
@@ -313,12 +316,12 @@ doctorAutoCompleteConfig model =
                 , config =
                     NeedsSuggestions
                         { hint = "Nombre del medico..."
-                        , inputId = "doctor-input"
+                        , inputId = textFieldId
                         , isFocused = textFieldState.hasFocus
                         , maybeSuggestions = model.suggestedDoctors
                         , onAutoCompleteKeyDown = onDoctorACKeysPressed
-                        , onQueryTextInput = TextChange DoctorSetup
-                        , onFocusChange = TextFocusChange DoctorSetup
+                        , onQueryTextInput = TextChange textFieldId
+                        , onFocusChange = TextFocusChange textFieldId
                         , queryText = textFieldState.value
                         , suggestionItemView = suggestedDoctorRow
                         }

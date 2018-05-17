@@ -1,5 +1,6 @@
 module Update exposing (update)
 
+import String
 import Model
     exposing
         ( Model
@@ -21,7 +22,6 @@ import Model
         , CurrentDoctor(UnknownDoctor)
         , CurrentPatient(UnknownPatient)
         , SetupModel
-        , TextFieldId(DoctorSetup, PatientSetup)
         )
 import Model.SetupTransforms
     exposing
@@ -40,6 +40,7 @@ import Model.SetupTransforms
         , setPatientQueryText
         , setPatientTextFocus
         )
+import Model.HemogramaTransforms exposing (setHemogramaText, setHemogramaTextFocus)
 import API exposing (getPatientSuggestions, getDoctorSuggestions)
 
 
@@ -48,42 +49,60 @@ baseUrl =
     ""
 
 
-updateTextValue : TextFieldId -> String -> Model -> ( Model, Cmd Msg )
+updateTextValue : String -> String -> Model -> ( Model, Cmd Msg )
 updateTextValue textFieldId newValue model =
     let
         updateSetupM transform =
             { model | setupModel = transform model.setupModel }
+
+        updateHemogramaM transform =
+            { model | hemogramaModel = transform model.hemogramaModel }
     in
         case textFieldId of
-            DoctorSetup ->
+            "doctor-input" ->
                 ( setDoctorQueryText newValue |> updateSetupM
                 , getDoctorSuggestions baseUrl
                     newValue
                 )
 
-            PatientSetup ->
+            "patient-input" ->
                 ( setPatientQueryText newValue |> updateSetupM
                 , getPatientSuggestions baseUrl
                     newValue
                 )
 
+            _ ->
+                if String.startsWith "hemograma-" textFieldId then
+                    ( setHemogramaText textFieldId newValue |> updateHemogramaM, Cmd.none )
+                else
+                    ( model, Cmd.none )
 
-updateTextFocusState : TextFieldId -> Bool -> Model -> ( Model, Cmd Msg )
+
+updateTextFocusState : String -> Bool -> Model -> ( Model, Cmd Msg )
 updateTextFocusState textFieldId newValue model =
     let
         updateSetupM transform =
             { model | setupModel = transform model.setupModel }
+
+        updateHemogramaM transform =
+            { model | hemogramaModel = transform model.hemogramaModel }
     in
         case textFieldId of
-            DoctorSetup ->
+            "doctor-input" ->
                 ( setDoctorTextFocus newValue |> updateSetupM
                 , Cmd.none
                 )
 
-            PatientSetup ->
+            "patient-input" ->
                 ( setPatientTextFocus newValue |> updateSetupM
                 , Cmd.none
                 )
+
+            _ ->
+                if String.startsWith "hemograma-" textFieldId then
+                    ( setHemogramaTextFocus textFieldId newValue |> updateHemogramaM, Cmd.none )
+                else
+                    ( model, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

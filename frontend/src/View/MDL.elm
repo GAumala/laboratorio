@@ -8,6 +8,7 @@ import Html.Attributes
         , for
         , id
         , name
+        , style
         , type_
         , value
         )
@@ -21,6 +22,7 @@ type alias TextFieldConfig msg =
     , isFocused : Bool
     , onInput : String -> msg
     , onFocusChange : Bool -> msg
+    , extraInputAttributes : List (Attribute msg)
     }
 
 
@@ -42,20 +44,20 @@ type alias MainButtonConfig msg =
     }
 
 
-textField : TextFieldConfig msg -> List (Attribute msg) -> Html msg
-textField config attributes =
+textField : TextFieldConfig msg -> Html msg
+textField config =
     let
-        mergedAttributes =
-            attributes
-                ++ [ type_ "text"
-                   , class "mdl-textfield__input"
-                   , id config.inputId
-                   , autocomplete False
-                   , value config.value
-                   , onInput config.onInput
-                   , onFocus <| config.onFocusChange True
-                   , onBlur <| config.onFocusChange False
-                   ]
+        attributes =
+            [ type_ "text"
+            , class "mdl-textfield__input"
+            , id config.inputId
+            , autocomplete False
+            , value config.value
+            , onInput config.onInput
+            , onFocus <| config.onFocusChange True
+            , onBlur <| config.onFocusChange False
+            ]
+                ++ config.extraInputAttributes
 
         isDirtyClass =
             if config.value /= "" then
@@ -74,7 +76,7 @@ textField config attributes =
     in
         div [ class containerClass ]
             [ input
-                mergedAttributes
+                attributes
                 []
             , label
                 [ class "mdl-textfield__label"

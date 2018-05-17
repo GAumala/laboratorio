@@ -6,9 +6,11 @@ import Model
         , Msg
         , CurrentPatient(UnknownPatient)
         , CurrentDoctor(UnknownDoctor)
+        , HemogramaModel
         , SetupModel
         , Section(SetupS)
         )
+import Dict
 import UStruct.USet as USet
 import Utils.SelectList as SList
 
@@ -23,9 +25,16 @@ defaultSetupModel =
     }
 
 
+defaultHemogramaModel : HemogramaModel
+defaultHemogramaModel =
+    { textFields = Dict.empty
+    }
+
+
 defaultModel : Model
 defaultModel =
     { setupModel = defaultSetupModel
+    , hemogramaModel = defaultHemogramaModel
     , sections = SList.fromLists [] SetupS []
     }
 

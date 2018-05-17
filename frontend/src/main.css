@@ -14,3 +14,25 @@ img {
   max-width: 200px;
 }
 
+.center {
+  display: inline-block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+td.name-label-col {
+  text-align: right;
+}
+
+td.input-field-col {
+  text-align: right;
+  max-width: 120px;
+}
+
+td.unit-label-col {
+  text-align: left;
+}
+
+span.form-text {
+  font-size: 22px;
+}

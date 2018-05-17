@@ -17,6 +17,7 @@ module Model
             , TextFocusChange
             )
         , Doctor
+        , HemogramaModel
         , Patient
         , CurrentDoctor(KnownDoctor, UnknownDoctor)
         , CurrentPatient(KnownPatient, UnknownPatient)
@@ -33,6 +34,7 @@ module Model
             , SerologicoS
             , FinishS
             )
+        , TextFieldState
         , MedicalTest
             ( Bioquimico
             , Coproparasitario
@@ -47,12 +49,9 @@ module Model
         , medicalTestName
         , medicalTestToString
         , SetupModel
-        , TextFieldId
-            ( DoctorSetup
-            , PatientSetup
-            )
         )
 
+import Dict
 import Http as Http
 import UStruct.USet as USet
 import Utils.SelectList as SList
@@ -146,17 +145,17 @@ medicalTestToString test =
             "serologico"
 
 
-type alias TextFieldInput =
+type alias TextFieldState =
     { value : String, hasFocus : Bool }
 
 
 type CurrentPatient
-    = UnknownPatient TextFieldInput
+    = UnknownPatient TextFieldState
     | KnownPatient Patient
 
 
 type CurrentDoctor
-    = UnknownDoctor TextFieldInput
+    = UnknownDoctor TextFieldState
     | KnownDoctor Doctor
 
 
@@ -166,6 +165,11 @@ type alias SetupModel =
     , suggestedDoctors : Maybe (SList.SelectList Doctor)
     , suggestedPatients : Maybe (SList.SelectList Patient)
     , selectedTests : USet.Struct MedicalTest
+    }
+
+
+type alias HemogramaModel =
+    { textFields : Dict.Dict String TextFieldState
     }
 
 
@@ -185,13 +189,9 @@ type Section
 
 type alias Model =
     { setupModel : SetupModel
+    , hemogramaModel : HemogramaModel
     , sections : SList.SelectList Section
     }
-
-
-type TextFieldId
-    = DoctorSetup
-    | PatientSetup
 
 
 type Msg
@@ -205,6 +205,6 @@ type Msg
     | CommitPatient
     | ResetDoctor
     | ResetPatient
-    | TextChange TextFieldId String
-    | TextFocusChange TextFieldId Bool
+    | TextChange String String
+    | TextFocusChange String Bool
     | NoOp
