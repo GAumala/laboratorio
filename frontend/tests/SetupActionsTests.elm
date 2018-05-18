@@ -21,7 +21,6 @@ import Model
         , CurrentPatient(UnknownPatient, KnownPatient)
         , Model
         , SetupModel
-        , TextFieldId(DoctorSetup, PatientSetup)
         )
 import Update exposing (update)
 import Init exposing (defaultModel)
@@ -120,7 +119,7 @@ inputDoctorTests =
             [ test "after typing text should update the model" <|
                 let
                     ( updatedModel, _ ) =
-                        update (TextChange DoctorSetup "riv") defaultModel
+                        update (TextChange "doctor-input" "riv") defaultModel
 
                     expectedModel =
                         modelWithDoctorQueryText
@@ -129,19 +128,19 @@ inputDoctorTests =
             , test "after typing text should send cmd to fetch suggestions from server" <|
                 let
                     ( _, issuedCmd ) =
-                        update (TextChange DoctorSetup "riv") defaultModel
+                        update (TextChange "doctor-input" "riv") defaultModel
                 in
                     \_ -> Expect.notEqual issuedCmd Cmd.none
             , test "after deleteing all typed text should update the model" <|
                 let
                     ( updatedModel, _ ) =
-                        update (TextChange DoctorSetup "") modelWithDoctorQueryText
+                        update (TextChange "doctor-input" "") modelWithDoctorQueryText
                 in
                     \_ -> Expect.equal updatedModel modelWithEmptyDoctorQueryText
             , test "after deleteing all typed text should not send any cmd" <|
                 let
                     ( _, issuedCmd ) =
-                        update (TextChange DoctorSetup "") modelWithDoctorQueryText
+                        update (TextChange "doctor-input" "") modelWithDoctorQueryText
                 in
                     \_ -> Expect.equal issuedCmd Cmd.none
             ]
@@ -176,7 +175,7 @@ inputPatientTests =
             [ test "after typing text should update the model" <|
                 let
                     ( updatedModel, _ ) =
-                        update (TextChange PatientSetup "riv") defaultModel
+                        update (TextChange "patient-input" "riv") defaultModel
 
                     expectedModel =
                         modelWithPatientQueryText
@@ -185,19 +184,19 @@ inputPatientTests =
             , test "after typing text should send cmd to fetch suggestions from server" <|
                 let
                     ( _, issuedCmd ) =
-                        update (TextChange PatientSetup "riv") defaultModel
+                        update (TextChange "patient-input" "riv") defaultModel
                 in
                     \_ -> Expect.notEqual issuedCmd Cmd.none
             , test "after deleteing all typed text should update the model" <|
                 let
                     ( updatedModel, _ ) =
-                        update (TextChange PatientSetup "") modelWithPatientQueryText
+                        update (TextChange "patient-input" "") modelWithPatientQueryText
                 in
                     \_ -> Expect.equal updatedModel modelWithEmptyPatientQueryText
             , test "after deleteing all typed text should not send any cmd" <|
                 let
                     ( _, issuedCmd ) =
-                        update (TextChange PatientSetup "") modelWithPatientQueryText
+                        update (TextChange "patient-input" "") modelWithPatientQueryText
                 in
                     \_ -> Expect.equal issuedCmd Cmd.none
             ]

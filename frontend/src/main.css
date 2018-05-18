@@ -33,6 +33,21 @@ td.unit-label-col {
   text-align: left;
 }
 
-span.form-text {
+.form-text {
   font-size: 22px;
+}
+
+.numeric {
+  text-align: right;
+}
+
+.numeric-input {
+  font-family: Roboto, sans-serif;
+  text-align: right;
+  padding-bottom:7px;
+}
+
+.numeric-label {
+  padding-top:3px;
+  text-align: right;
 }

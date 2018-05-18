@@ -1,4 +1,4 @@
-module View.MDL exposing (checkbox, deletableChip, mainButton, textField)
+module View.MDL exposing (TextFieldConfig, checkbox, deletableChip, mainButton, textField)
 
 import Html exposing (Attribute, Html, button, div, i, input, label, span, text)
 import Html.Attributes
@@ -23,6 +23,8 @@ type alias TextFieldConfig msg =
     , onInput : String -> msg
     , onFocusChange : Bool -> msg
     , extraInputAttributes : List (Attribute msg)
+    , labelClass : String
+    , inputClass : String
     }
 
 
@@ -49,7 +51,7 @@ textField config =
     let
         attributes =
             [ type_ "text"
-            , class "mdl-textfield__input"
+            , class inputClass
             , id config.inputId
             , autocomplete False
             , value config.value
@@ -73,13 +75,19 @@ textField config =
 
         containerClass =
             "mdl-textfield mdl-js-textfield" ++ isDirtyClass ++ isFocusedClass
+
+        labelClass =
+            "mdl-textfield__label " ++ config.labelClass
+
+        inputClass =
+            "mdl-textfield__input " ++ config.inputClass
     in
         div [ class containerClass ]
             [ input
                 attributes
                 []
             , label
-                [ class "mdl-textfield__label"
+                [ class labelClass
                 , for config.inputId
                 ]
                 [ text config.fieldLabel ]

@@ -152,6 +152,8 @@ autoCompleteInput config =
                 , extraInputAttributes =
                     [ AC.onAutoCompleteKeyDown config.onAutoCompleteKeyDown
                     ]
+                , labelClass = ""
+                , inputClass = ""
                 }
 
         suggestionsList =

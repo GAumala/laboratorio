@@ -29,6 +29,20 @@ formRow columns =
         ]
 
 
+numericInputConfig : String -> TextFieldState -> MDL.TextFieldConfig Msg
+numericInputConfig id state =
+    { fieldLabel = "0"
+    , inputId = id
+    , isFocused = state.hasFocus
+    , value = state.value
+    , onFocusChange = TextFocusChange id
+    , onInput = TextChange id
+    , extraInputAttributes = []
+    , labelClass = "numeric-label form-text"
+    , inputClass = "numeric-input form-text"
+    }
+
+
 eritrocitosRow : HemogramaModel -> Html Msg
 eritrocitosRow model =
     let
@@ -41,15 +55,7 @@ eritrocitosRow model =
         formRow
             { nameLabel = span [ class "form-text" ] [ text "eritrocitos" ]
             , inputField =
-                MDL.textField
-                    { fieldLabel = "0"
-                    , inputId = textFieldId
-                    , isFocused = state.hasFocus
-                    , value = state.value
-                    , onFocusChange = TextFocusChange textFieldId
-                    , onInput = TextChange textFieldId
-                    , extraInputAttributes = [ style [ ( "text-align", "right" ) ] ]
-                    }
+                MDL.textField <| numericInputConfig textFieldId state
             , unitLabel = span [ class "form-text" ] [ text "x 10 6/UL" ]
             }
 
@@ -66,15 +72,7 @@ hematocritoRow model =
         formRow
             { nameLabel = span [ class "form-text" ] [ text "hematocrito" ]
             , inputField =
-                MDL.textField
-                    { fieldLabel = "0"
-                    , inputId = textFieldId
-                    , isFocused = state.hasFocus
-                    , value = state.value
-                    , onFocusChange = TextFocusChange textFieldId
-                    , onInput = TextChange textFieldId
-                    , extraInputAttributes = [ style [ ( "text-align", "right" ) ] ]
-                    }
+                MDL.textField <| numericInputConfig textFieldId state
             , unitLabel = span [ class "form-text" ] [ text "%" ]
             }
 
