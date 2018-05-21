@@ -51,3 +51,13 @@ td.unit-label-col {
   padding-top:3px;
   text-align: right;
 }
+
+.section-header {
+  font-size: 23px;
+  text-align: left;
+  text-decoration: underline
+}
+
+.submit-button-row {
+  padding: 20px 0;
+}
